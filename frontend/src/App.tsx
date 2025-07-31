@@ -1,6 +1,6 @@
 import { LogIn, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
-import logo from "../../assets/logoRond.png";
+// import logo from "../../assets/logoRond.png";
 
 const MainHeader = () => {
   return (
@@ -8,7 +8,7 @@ const MainHeader = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Logo + Titre */}
         <div className="flex items-center gap-3 min-w-0">
-          <img src={logo} alt="logo" className="w-10 h-10 shrink-0" />
+          {/* <img src={logo} alt="logo" className="w-10 h-10 shrink-0" /> */}
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors duration-300 truncate">
               Tsinjool
@@ -21,7 +21,6 @@ const MainHeader = () => {
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-
           <Link
             to="/login"
             className="flex items-center px-4 py-2 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-300"
