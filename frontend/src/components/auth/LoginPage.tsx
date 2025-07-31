@@ -3,7 +3,6 @@ import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../ui/toast";
-import { motion } from "framer-motion";
 
 export default function LoginPage() {
   useEffect(() => {
@@ -15,6 +14,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+console.log(open, title, description);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,7 +30,6 @@ export default function LoginPage() {
       );
       const token = response.data.token;
       localStorage.setItem("token", token);
-
       toast({ title: "Succès", description: "Connexion réussie !" });
       setTimeout(() => {
         setOpen(false);
@@ -48,125 +47,101 @@ export default function LoginPage() {
   };
 
   return (
-    <>
-      {/* Toast Notification */}
-      {open && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-5 right-5 z-50"
-        >
-          <div className="bg-gray-800 text-white p-4 rounded-md shadow-lg max-w-sm">
-            <h3 className="font-bold">{title}</h3>
-            {description && <p className="mt-1 text-sm">{description}</p>}
-            <button
-              className="mt-2 text-xs underline"
-              onClick={() => setOpen(false)}
-            >
-              Fermer
-            </button>
-          </div>
-        </motion.div>
-      )}
+    <div className="min-h-screen bg-[#8a8f6a] flex items-center justify-center p-6">
+      <div className="bg-[#f5f1e8] border border-[#c8c1b2] w-full max-w-5xl p-10">
+        {/* Titre */}
+        <h1 className="text-center font-serif text-4xl text-[#4a4a3d] mb-6">
+          My account
+        </h1>
 
-      {/* Page */}
-      <div className="min-h-screen bg-[#f5f3ef] flex items-center justify-center px-4 py-12 font-sans">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-[#ddd7ce] flex flex-col md:flex-row overflow-hidden"
-        >
-          {/* Form Section */}
-          <div className="w-full md:w-1/2 p-8">
-            <h1 className="text-4xl font-serif text-center text-[#6b7a50] mb-6">
-              My account
-            </h1>
+        {/* Onglets Login/Register */}
+        <div className="flex justify-center gap-4 mb-10">
+          <button className="px-6 py-2 bg-[#8a8f6a] text-white rounded-sm">
+            Login
+          </button>
+          <Link
+            to="/register"
+            className="px-6 py-2 bg-white border border-[#c8c1b2] text-[#4a4a3d] rounded-sm"
+          >
+            Register
+          </Link>
+        </div>
 
-            {/* Onglets */}
-            <div className="flex justify-center gap-4 mb-8">
-              <button className="px-6 py-2 rounded-md bg-[#6b7a50] text-white font-medium">
-                Login
-              </button>
-              <Link
-                to="/register"
-                className="px-6 py-2 rounded-md border border-[#6b7a50] text-[#6b7a50] hover:bg-[#6b7a50] hover:text-white transition"
-              >
-                Register
-              </Link>
-            </div>
-
+        {/* Bloc formulaire + image */}
+        <div className="flex flex-col md:flex-row border border-[#c8c1b2]">
+          {/* Formulaire */}
+          <div className="w-full md:w-1/2 p-6">
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email */}
               <div>
-                <label className="block mb-1 text-sm font-medium text-[#6b7a50]">
-                  Nom d'utilisateur
+                <label className="block text-sm mb-1 text-[#4a4a3d]">
+                  Email
                 </label>
                 <input
                   type="text"
                   name="username"
-                  placeholder="Entrez votre nom"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-[#ddd7ce] rounded-md focus:outline-none focus:border-[#6b7a50] focus:ring-1 focus:ring-[#6b7a50]"
+                  placeholder="email@example.com"
+                  className="w-full border border-[#c8c1b2] rounded-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8a8f6a]"
                   required
                 />
               </div>
 
+              {/* Mot de passe */}
               <div>
-                <label className="block mb-1 text-sm font-medium text-[#6b7a50]">
-                  Mot de passe
+                <label className="block text-sm mb-1 text-[#4a4a3d]">
+                  Password
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-[#ddd7ce] rounded-md focus:outline-none focus:border-[#6b7a50] focus:ring-1 focus:ring-[#6b7a50]"
+                    placeholder="••••••••"
+                    className="w-full border border-[#c8c1b2] rounded-sm px-3 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#8a8f6a]"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b7a50]"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
+              {/* Bouton connexion */}
               <button
                 type="submit"
-                className="w-full py-3 bg-[#c6a664] hover:bg-[#b59555] text-white font-medium rounded-md transition"
                 disabled={loading}
+                className="w-full py-2 bg-[#b58f58] text-white rounded-sm hover:bg-[#a17b4c] transition"
               >
                 {loading ? "Connexion..." : "Login"}
               </button>
-            </form>
 
-            <p className="text-center text-sm text-gray-600 mt-6">
-              Pas encore de compte ?{" "}
-              <Link
-                to="/register"
-                className="text-[#6b7a50] hover:underline font-medium"
+              {/* Google */}
+              <button
+                type="button"
+                className="w-full py-2 bg-white border border-[#c8c1b2] text-[#4a4a3d] rounded-sm hover:bg-gray-50 transition"
               >
-                S’inscrire
-              </Link>
-            </p>
+                Sign in with Google
+              </button>
+            </form>
           </div>
 
-          {/* Image Section */}
-          <div className="hidden md:block w-1/2">
+          {/* Image */}
+          <div className="w-full md:w-1/2 h-48 md:h-auto">
             {/* <img
-              src="/images/login-side.jpg"
-              alt="Login visual"
+              src="/login-side.jpg"
+              alt="Login"
               className="w-full h-full object-cover"
             /> */}
           </div>
-        </motion.div>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
