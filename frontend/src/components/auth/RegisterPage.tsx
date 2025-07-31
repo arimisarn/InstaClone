@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useToast } from "../../components/ui/toast"; // <-- ici le chemin vers ton toast personnalisé
-import logo from "../../assets/logoRond.png";
+import { useToast } from "../../components/ui/toast";
 
 interface Slide {
   image: string;
@@ -116,9 +115,6 @@ export default function RegisterPage() {
         <div className="w-full lg:w-1/2 flex flex-col relative">
           <div className="flex justify-between items-center p-6 lg:p-8">
             <div className="flex items-center gap-3">
-              <Link to="/">
-                <img src={logo} alt="Logo Tsinjool" className="w-10 h-10" />
-              </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Tsinjool

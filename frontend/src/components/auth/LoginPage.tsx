@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import logo from "../../assets/logoRond.png";
 import { useToast } from "../ui/toast"; // <-- chemin vers ton hook toast personnalisé
 
 const slides = [
@@ -98,9 +97,7 @@ export default function LoginPage() {
           <div className="w-full lg:w-1/2 flex flex-col relative">
             <div className="flex justify-between items-center p-6 lg:p-8">
               <div className="flex items-center gap-3">
-                <Link to="/">
-                  <img src={logo} alt="Logo Tsinjool" className="w-10 h-10" />
-                </Link>
+                <Link to="/">a</Link>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Tsinjool
