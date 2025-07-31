@@ -1,5 +1,5 @@
-
-{"files": [],
+{
+  "files": [],
   "references": [
     {
       "path": "./tsconfig.app.json"
@@ -10,11 +10,13 @@
   ],
   "types": ["node"],
   "compilerOptions": {
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "web"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/*"]
     }
   }
 }
