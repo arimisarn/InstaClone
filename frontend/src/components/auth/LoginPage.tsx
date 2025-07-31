@@ -2,19 +2,38 @@ import React, { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { useToast } from "../ui/toast";
+import { useToast } from "../ui/toast"; // <-- chemin vers ton hook toast personnalisé
+
+const slides = [
+  {
+    image: "/carousel1.jpg",
+    title: "Bienvenue chez Tsinjool",
+    subtitle: "Votre coach IA personnalisé pour atteindre vos objectifs.",
+  },
+  {
+    image: "/carousel2.jpg",
+    title: "Connectez-vous à votre avenir",
+    subtitle: "Un espace personnalisé pour suivre vos progrès.",
+  },
+  {
+    image: "/carousel3.jpg",
+    title: "Reprenez le contrôle",
+    subtitle: "Gérez votre santé, vos objectifs, votre énergie.",
+  },
+];
 
 export default function LoginPage() {
   useEffect(() => {
-    document.title = "Tsinjool - Connexion";
+    document.title = "Fampita - Connexion";
   }, []);
 
   const navigate = useNavigate();
-  const { toast, open, setOpen, title, description } = useToast();
+  const { toast, open, setOpen, title, description } = useToast(); // hook toast
+
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-console.log(open, title, description);
+  const [current, setCurrent] = useState(0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,6 +49,7 @@ console.log(open, title, description);
       );
       const token = response.data.token;
       localStorage.setItem("token", token);
+
       toast({ title: "Succès", description: "Connexion réussie !" });
       setTimeout(() => {
         setOpen(false);
@@ -46,102 +66,146 @@ console.log(open, title, description);
     }
   };
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#8a8f6a] flex items-center justify-center p-6">
-      <div className="bg-[#f5f1e8] border border-[#c8c1b2] w-full max-w-5xl p-10">
-        {/* Titre */}
-        <h1 className="text-center font-serif text-4xl text-[#4a4a3d] mb-6">
-          My account
-        </h1>
-
-        {/* Onglets Login/Register */}
-        <div className="flex justify-center gap-4 mb-10">
-          <button className="px-6 py-2 bg-[#8a8f6a] text-white rounded-sm">
-            Login
-          </button>
-          <Link
-            to="/register"
-            className="px-6 py-2 bg-white border border-[#c8c1b2] text-[#4a4a3d] rounded-sm"
-          >
-            Register
-          </Link>
+    <>
+      {/* Toast UI: affichage conditionnel */}
+      {open && (
+        <div className="fixed bottom-5 right-5 z-50">
+          <div className="bg-gray-800 text-white p-4 rounded-md shadow-lg max-w-sm">
+            <h3 className="font-bold">{title}</h3>
+            {description && <p className="mt-1 text-sm">{description}</p>}
+            <button
+              className="mt-2 text-xs underline"
+              onClick={() => setOpen(false)}
+            >
+              Fermer
+            </button>
+          </div>
         </div>
+      )}
 
-        {/* Bloc formulaire + image */}
-        <div className="flex flex-col md:flex-row border border-[#c8c1b2]">
-          {/* Formulaire */}
-          <div className="w-full md:w-1/2 p-6">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Email */}
-              <div>
-                <label className="block text-sm mb-1 text-[#4a4a3d]">
-                  Email
-                </label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="email@example.com"
-                  className="w-full border border-[#c8c1b2] rounded-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8a8f6a]"
-                  required
-                />
-              </div>
-
-              {/* Mot de passe */}
-              <div>
-                <label className="block text-sm mb-1 text-[#4a4a3d]">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="••••••••"
-                    className="w-full border border-[#c8c1b2] rounded-sm px-3 py-2 pr-10 focus:outline-none focus:ring-1 focus:ring-[#8a8f6a]"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-500">
+        <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px] transition-all duration-500">
+          {/* Section formulaire */}
+          <div className="w-full lg:w-1/2 flex flex-col relative">
+            <div className="flex justify-between items-center p-6 lg:p-8">
+              <div className="flex items-center gap-3">
+                <Link to="/">a</Link>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Tsinjool
+                  </h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Votre coach personnel intelligent
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Bouton connexion */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2 bg-[#b58f58] text-white rounded-sm hover:bg-[#a17b4c] transition"
+            <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
+              <form
+                onSubmit={handleSubmit}
+                className="w-full max-w-md space-y-5"
               >
-                {loading ? "Connexion..." : "Login"}
-              </button>
+                <h2 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 text-center">
+                  Connexion à votre compte
+                </h2>
 
-              {/* Google */}
-              <button
-                type="button"
-                className="w-full py-2 bg-white border border-[#c8c1b2] text-[#4a4a3d] rounded-sm hover:bg-gray-50 transition"
-              >
-                Sign in with Google
-              </button>
-            </form>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Nom d'utilisateur
+                  </label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-600 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Mot de passe
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-600 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    >
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                >
+                  {loading ? "Connexion..." : "Se connecter"}
+                </button>
+
+                <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+                  Vous n’avez pas encore de compte ?{" "}
+                  <Link
+                    to="/register"
+                    className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+                  >
+                    S’inscrire
+                  </Link>
+                </p>
+              </form>
+            </div>
           </div>
 
-          {/* Image */}
-          <div className="w-full md:w-1/2 h-48 md:h-auto">
-            {/* <img
-              src="/login-side.jpg"
-              alt="Login"
-              className="w-full h-full object-cover"
-            /> */}
+          {/* Section carrousel */}
+          <div className="w-full lg:w-1/2 relative overflow-hidden min-h-[300px] lg:min-h-full">
+            <div className="relative w-full h-full">
+              {slides.map((slide, index) => (
+                <div
+                  key={index}
+                  className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
+                    index === current
+                      ? "opacity-100 transform translate-x-0"
+                      : index < current
+                      ? "opacity-0 transform -translate-x-full"
+                      : "opacity-0 transform translate-x-full"
+                  }`}
+                >
+                  <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url(${slide.image})` }}
+                  />
+                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white px-10 text-center">
+                    <h3 className="text-4xl font-bold mb-2 drop-shadow">
+                      {slide.title}
+                    </h3>
+                    <p className="text-lg font-light">{slide.subtitle}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
