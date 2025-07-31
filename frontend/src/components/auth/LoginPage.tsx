@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { useToast } from "../ui/toast";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   useEffect(() => {
@@ -11,7 +12,6 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const { toast, open, setOpen, title, description } = useToast();
-
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -51,7 +51,12 @@ export default function LoginPage() {
     <>
       {/* Toast Notification */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-50">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed bottom-5 right-5 z-50"
+        >
           <div className="bg-gray-800 text-white p-4 rounded-md shadow-lg max-w-sm">
             <h3 className="font-bold">{title}</h3>
             {description && <p className="mt-1 text-sm">{description}</p>}
@@ -62,73 +67,105 @@ export default function LoginPage() {
               Fermer
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Page */}
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 px-4">
-        <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-8 space-y-6 border border-gray-200 dark:border-gray-800">
-          {/* Logo / Titre */}
-          <div className="text-center space-y-1">
-            <h1 className="text-3xl font-bold text-indigo-600">Tsinjool</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Connectez-vous pour continuer
+      <div className="min-h-screen bg-[#f5f3ef] flex items-center justify-center px-4 py-12 font-sans">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-4xl bg-white rounded-2xl shadow-lg border border-[#ddd7ce] flex flex-col md:flex-row overflow-hidden"
+        >
+          {/* Form Section */}
+          <div className="w-full md:w-1/2 p-8">
+            <h1 className="text-4xl font-serif text-center text-[#6b7a50] mb-6">
+              My account
+            </h1>
+
+            {/* Onglets */}
+            <div className="flex justify-center gap-4 mb-8">
+              <button className="px-6 py-2 rounded-md bg-[#6b7a50] text-white font-medium">
+                Login
+              </button>
+              <Link
+                to="/register"
+                className="px-6 py-2 rounded-md border border-[#6b7a50] text-[#6b7a50] hover:bg-[#6b7a50] hover:text-white transition"
+              >
+                Register
+              </Link>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block mb-1 text-sm font-medium text-[#6b7a50]">
+                  Nom d'utilisateur
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Entrez votre nom"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-[#ddd7ce] rounded-md focus:outline-none focus:border-[#6b7a50] focus:ring-1 focus:ring-[#6b7a50]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-[#6b7a50]">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-[#ddd7ce] rounded-md focus:outline-none focus:border-[#6b7a50] focus:ring-1 focus:ring-[#6b7a50]"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#6b7a50]"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-[#c6a664] hover:bg-[#b59555] text-white font-medium rounded-md transition"
+                disabled={loading}
+              >
+                {loading ? "Connexion..." : "Login"}
+              </button>
+            </form>
+
+            <p className="text-center text-sm text-gray-600 mt-6">
+              Pas encore de compte ?{" "}
+              <Link
+                to="/register"
+                className="text-[#6b7a50] hover:underline font-medium"
+              >
+                S’inscrire
+              </Link>
             </p>
           </div>
 
-          {/* Formulaire */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <input
-                type="text"
-                name="username"
-                placeholder="Nom d'utilisateur"
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                required
-              />
-            </div>
-
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Mot de passe"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading}
-            >
-              {loading ? "Connexion..." : "Se connecter"}
-            </button>
-          </form>
-
-          {/* Lien inscription */}
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Vous n’avez pas encore de compte ?{" "}
-            <Link
-              to="/register"
-              className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
-            >
-              S’inscrire
-            </Link>
-          </p>
-        </div>
+          {/* Image Section */}
+          <div className="hidden md:block w-1/2">
+            {/* <img
+              src="/images/login-side.jpg"
+              alt="Login visual"
+              className="w-full h-full object-cover"
+            /> */}
+          </div>
+        </motion.div>
       </div>
     </>
   );
