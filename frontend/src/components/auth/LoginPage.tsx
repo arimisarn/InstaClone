@@ -2,25 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { useToast } from "../ui/toast"; // <-- chemin vers ton hook toast personnalisé
-
-const slides = [
-  {
-    image: "/carousel1.jpg",
-    title: "Bienvenue chez Tsinjool",
-    subtitle: "Votre coach IA personnalisé pour atteindre vos objectifs.",
-  },
-  {
-    image: "/carousel2.jpg",
-    title: "Connectez-vous à votre avenir",
-    subtitle: "Un espace personnalisé pour suivre vos progrès.",
-  },
-  {
-    image: "/carousel3.jpg",
-    title: "Reprenez le contrôle",
-    subtitle: "Gérez votre santé, vos objectifs, votre énergie.",
-  },
-];
+import { useToast } from "../ui/toast";
 
 export default function LoginPage() {
   useEffect(() => {
@@ -28,12 +10,11 @@ export default function LoginPage() {
   }, []);
 
   const navigate = useNavigate();
-  const { toast, open, setOpen, title, description } = useToast(); // hook toast
+  const { toast, open, setOpen, title, description } = useToast();
 
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [current, setCurrent] = useState(0);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -66,16 +47,9 @@ export default function LoginPage() {
     }
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <>
-      {/* Toast UI: affichage conditionnel */}
+      {/* Toast Notification */}
       {open && (
         <div className="fixed bottom-5 right-5 z-50">
           <div className="bg-gray-800 text-white p-4 rounded-md shadow-lg max-w-sm">
@@ -91,119 +65,69 @@ export default function LoginPage() {
         </div>
       )}
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-500">
-        <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px] transition-all duration-500">
-          {/* Section formulaire */}
-          <div className="w-full lg:w-1/2 flex flex-col relative">
-            <div className="flex justify-between items-center p-6 lg:p-8">
-              <div className="flex items-center gap-3">
-                <Link to="/">a</Link>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Tsinjool
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Votre coach personnel intelligent
-                  </p>
-                </div>
-              </div>
+      {/* Page */}
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950 px-4">
+        <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-8 space-y-6 border border-gray-200 dark:border-gray-800">
+          {/* Logo / Titre */}
+          <div className="text-center space-y-1">
+            <h1 className="text-3xl font-bold text-indigo-600">Tsinjool</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Connectez-vous pour continuer
+            </p>
+          </div>
+
+          {/* Formulaire */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <input
+                type="text"
+                name="username"
+                placeholder="Nom d'utilisateur"
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                required
+              />
             </div>
 
-            <div className="flex-1 flex items-center justify-center p-6 lg:p-8">
-              <form
-                onSubmit={handleSubmit}
-                className="w-full max-w-md space-y-5"
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Mot de passe"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 dark:text-white placeholder-gray-400"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
               >
-                <h2 className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 text-center">
-                  Connexion à votre compte
-                </h2>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nom d'utilisateur
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-600 outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Mot de passe
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-600 outline-none text-gray-900 dark:text-white placeholder-gray-400"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                >
-                  {loading ? "Connexion..." : "Se connecter"}
-                </button>
-
-                <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-                  Vous n’avez pas encore de compte ?{" "}
-                  <Link
-                    to="/register"
-                    className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
-                  >
-                    S’inscrire
-                  </Link>
-                </p>
-              </form>
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
-          </div>
 
-          {/* Section carrousel */}
-          <div className="w-full lg:w-1/2 relative overflow-hidden min-h-[300px] lg:min-h-full">
-            <div className="relative w-full h-full">
-              {slides.map((slide, index) => (
-                <div
-                  key={index}
-                  className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
-                    index === current
-                      ? "opacity-100 transform translate-x-0"
-                      : index < current
-                      ? "opacity-0 transform -translate-x-full"
-                      : "opacity-0 transform translate-x-full"
-                  }`}
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url(${slide.image})` }}
-                  />
-                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white px-10 text-center">
-                    <h3 className="text-4xl font-bold mb-2 drop-shadow">
-                      {slide.title}
-                    </h3>
-                    <p className="text-lg font-light">{slide.subtitle}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+            <button
+              type="submit"
+              className="w-full py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+
+          {/* Lien inscription */}
+          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            Vous n’avez pas encore de compte ?{" "}
+            <Link
+              to="/register"
+              className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+            >
+              S’inscrire
+            </Link>
+          </p>
         </div>
       </div>
     </>

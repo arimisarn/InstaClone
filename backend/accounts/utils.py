@@ -10,14 +10,14 @@ def generate_confirmation_code(length=6):
     return ''.join(random.choices(string.digits, k=length))
 
 def send_confirmation_email(email, code):
-    subject = "Confirme ton adresse email - Tsinjool"
-    from_email = "Tsinjool <noreply@tsinjool.com>"
+    subject = "Confirme ton adresse email - Fampita"
+    from_email = "Fampita <noreply@fampita.com>"
     to = [email]
 
     context = {
         'confirmation_code': code,
         'user_email': email,
-        'site_name': 'Vocal-net',
+        'site_name': 'Fampita',
     }
     html_content = render_to_string("emails/confirmation_email.html", context)
 
