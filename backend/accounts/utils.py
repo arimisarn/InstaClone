@@ -19,12 +19,8 @@ def send_confirmation_email(email, code):
         'user_email': email,
         'site_name': 'Vocal-net',
     }
-
-    # HTML version (tu peux cr
-    # éer un fichier .html pour ça)
     html_content = render_to_string("emails/confirmation_email.html", context)
 
-    # Plaintext fallback
     text_content = f"Ton code de confirmation : {code}"
 
     msg = EmailMultiAlternatives(subject, text_content, from_email, to)
