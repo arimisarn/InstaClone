@@ -57,7 +57,7 @@ export default function ConfirmEmailPage() {
 
       // Connexion auto
       const loginRes = await axios.post(
-        "https://tsinjool-backend.onrender.com/api/login/",
+        "https://instaclone-oise.onrender.com/api/login/",
         { username, password }
       );
       const token = loginRes.data.token;
