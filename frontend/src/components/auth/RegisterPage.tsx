@@ -45,7 +45,7 @@ const slides: Slide[] = [
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { toast } = useToast(); // utilise ton hook toast personnalisé
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -84,7 +84,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await axios.post(
-        "https://tsinjool-backend.onrender.com/api/register/",
+        "https://instaclone-oise.onrender.com/api/register/",
         formData
       );
       sessionStorage.setItem("pendingUsername", formData.nom_utilisateur);
@@ -113,7 +113,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-500">
       <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px]">
-        {/* Formulaire */}
         <div className="w-full lg:w-1/2 flex flex-col relative">
           <div className="flex justify-between items-center p-6 lg:p-8">
             <div className="flex items-center gap-3">
