@@ -28,7 +28,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 
 
 ALLOWED_HOSTS = [
-    "fampita-backend.onrender.com",
+    "https://instaclone-oise.onrender.com",
     "localhost",
     "127.0.0.1",
 ]
