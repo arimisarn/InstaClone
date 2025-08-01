@@ -279,19 +279,25 @@ User = get_user_model()
 def get_user_profile(request, username):
     user = get_object_or_404(User, nom_utilisateur=username)
     profile = getattr(user, "profile", None)
+
+    photo_url = None
+    if profile:
+        # Attention si photo est un URLField, pas ImageField
+        photo_url = profile.photo_url if hasattr(profile, "photo_url") else None
+
     return Response(
         {
             "nom_utilisateur": user.nom_utilisateur,
             "email": user.email,
-            "photo_url": profile.photo.url if profile and profile.photo else None,
+            "photo_url": photo_url,
             "bio": profile.bio if profile else "",
             "nb_publications": user.posts.count() if hasattr(user, "posts") else 0,
-            "followers": profile.followers.count(),
-            "following": user.following.count(),
+            "followers": profile.followers.count() if profile else 0,
+            "following": user.following.count() if hasattr(user, "following") else 0,
             "sites_web": profile.sites_web if profile and profile.sites_web else [],
             "is_following": (
-                profile.followers.filter(id=request.user.id).exists()
-                if profile
+                request.user in profile.followers.all()
+                if profile and hasattr(profile, "followers")
                 else False
             ),
         }
