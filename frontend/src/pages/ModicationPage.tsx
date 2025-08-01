@@ -50,7 +50,7 @@ const ModificationPage: React.FC = () => {
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append("bio", bio);
-    formData.append("sexe", gender);
+    formData.append("genre", gender);
     formData.append("show_account_suggestions", String(showSuggestions));
     formData.append(
       "site_web",

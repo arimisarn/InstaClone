@@ -3,6 +3,7 @@ import time
 import traceback
 from django.contrib.auth import get_user_model, authenticate
 from django.conf import settings
+from httpx import request
 from rest_framework import generics, permissions, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
@@ -127,7 +128,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         try:
             # ✅ Récupération des champs simples
             bio = request.data.get("bio", profile.bio)
-            sexe = request.data.get("sexe", profile.sexe)
+            genre = request.data.get("genre", profile.genre)
             show_suggestions = request.data.get(
                 "show_account_suggestions", profile.show_account_suggestions
             )
@@ -178,7 +179,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
 
             # ✅ Sauvegarde profil
             profile.bio = bio
-            profile.sexe = sexe
+            profile.genre = genre
             profile.site_web = site_web
             profile.show_account_suggestions = show_suggestions
             profile.photo_url = photo_url
