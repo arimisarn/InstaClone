@@ -1,3 +1,4 @@
+import json
 import time
 import traceback
 from django.contrib.auth import get_user_model, authenticate
@@ -107,9 +108,6 @@ class ConfirmEmailView(APIView):
             return Response({"error": "Code incorrect."}, status=400)
 
 
-# ----------------------------
-# 📌 MISE À JOUR PROFIL
-# ----------------------------
 class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -122,18 +120,38 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         profile = self.get_object()
 
-        bio = request.data.get("bio", profile.bio)
-        sexe = request.data.get("sexe", profile.sexe)
-        site_web = request.data.getlist("site_web[]", profile.site_web)
-        show_suggestions = request.data.get(
-            "show_account_suggestions", profile.show_account_suggestions
-        )
-        photo_file = request.FILES.get("photo")
-
-        photo_url = profile.photo_url
+        # 🔍 Debug : voir ce que reçoit le backend
+        print("📌 DATA REÇUE :", dict(request.data))
+        print("📌 FILES REÇUS :", request.FILES)
 
         try:
-            if photo_file and supabase:  # ✅ Vérifie si supabase est dispo
+            # ✅ Récupération des champs simples
+            bio = request.data.get("bio", profile.bio)
+            sexe = request.data.get("sexe", profile.sexe)
+            show_suggestions = request.data.get(
+                "show_account_suggestions", profile.show_account_suggestions
+            )
+
+            # ✅ Récupération des sites web
+            site_web = profile.site_web
+            if "site_web" in request.data:
+                try:
+                    site_web = json.loads(request.data.get("site_web"))
+                    if not isinstance(site_web, list):
+                        site_web = [str(site_web)]
+                except Exception:
+                    site_web = [request.data.get("site_web")]
+            elif "site_web[]" in request.data:
+                site_web = request.data.getlist("site_web[]")
+
+            # ✅ Gestion de la photo
+            photo_file = request.FILES.get("photo")
+            photo_url = profile.photo_url
+
+            if photo_file:
+                if not supabase:
+                    raise Exception("Supabase n'est pas configuré.")
+
                 timestamp = int(time.time())
                 safe_name = clean_filename(photo_file.name)
                 file_name = f"{request.user.id}_{timestamp}_{safe_name}"
@@ -158,7 +176,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
                 # URL publique
                 photo_url = supabase.storage.from_("avatar").get_public_url(file_name)
 
-            # Sauvegarde profil
+            # ✅ Sauvegarde profil
             profile.bio = bio
             profile.sexe = sexe
             profile.site_web = site_web
@@ -166,10 +184,11 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             profile.photo_url = photo_url
             profile.save()
 
-            serializer = self.get_serializer(profile)
-            return Response(serializer.data, status=200)
+            return Response(self.get_serializer(profile).data, status=200)
 
         except Exception as e:
+            import traceback
+
             traceback.print_exc()
             return Response({"detail": f"Erreur serveur : {str(e)}"}, status=500)
 

@@ -29,7 +29,10 @@ const ModificationPage: React.FC = () => {
       .catch((err) => console.error(err));
   }, [token]);
 
+  // 📌 Ajouter un site web
   const handleAddSite = () => setSitesWeb([...sitesWeb, ""]);
+
+  // 📌 Supprimer un site web
   const handleRemoveSite = (index: number) =>
     setSitesWeb(sitesWeb.filter((_, i) => i !== index));
   const handleChangeSite = (index: number, value: string) => {
@@ -53,6 +56,7 @@ const ModificationPage: React.FC = () => {
       "site_web",
       JSON.stringify(sitesWeb.filter((s) => s.trim()))
     );
+
     if (photoFile) {
       formData.append("photo", photoFile);
     }
@@ -68,10 +72,10 @@ const ModificationPage: React.FC = () => {
           },
         }
       );
-      alert("Profil mis à jour !");
+      alert("✅ Profil mis à jour !");
     } catch (err) {
       console.error(err);
-      alert("Erreur lors de la mise à jour");
+      alert("❌ Erreur lors de la mise à jour");
     }
   };
 
