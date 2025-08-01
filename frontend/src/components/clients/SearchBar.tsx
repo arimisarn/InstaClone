@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import axios from "axios";
 
@@ -13,22 +13,34 @@ const SearchBar: React.FC = () => {
   const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Charger l'historique depuis localStorage
+  // Gestion clic hors dropdown
   useEffect(() => {
-    const history = localStorage.getItem("searchHistory");
-    if (history) {
-      setSearchHistory(JSON.parse(history));
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Sauvegarder l'historique dans localStorage
+  // Charger historique
+  useEffect(() => {
+    const history = localStorage.getItem("searchHistory");
+    if (history) setSearchHistory(JSON.parse(history));
+  }, []);
+
   const saveHistory = (newHistory: string[]) => {
     setSearchHistory(newHistory);
     localStorage.setItem("searchHistory", JSON.stringify(newHistory));
   };
 
-  // Gérer la recherche
+  // Recherche API
   useEffect(() => {
     if (query.trim() === "") {
       setSuggestions([]);
@@ -56,15 +68,15 @@ const SearchBar: React.FC = () => {
     return () => clearTimeout(delayDebounce);
   }, [query]);
 
-  // Ajouter à l'historique
+  // Ajouter à l’historique
   const addToHistory = (term: string) => {
     if (!term.trim()) return;
     const newHistory = [term, ...searchHistory.filter((h) => h !== term)];
-    saveHistory(newHistory.slice(0, 5)); // max 5 recherches
+    saveHistory(newHistory.slice(0, 5));
   };
 
   return (
-    <div className="relative w-full max-w-xs">
+    <div ref={wrapperRef} className="relative w-full max-w-xs">
       <div className="relative">
         <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
         <input
@@ -77,10 +89,8 @@ const SearchBar: React.FC = () => {
         />
       </div>
 
-      {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg border border-gray-200 z-50">
-          {/* Si en train de taper → suggestions */}
+        <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg border border-gray-200 z-50 max-h-64 overflow-auto">
           {query.trim() !== "" ? (
             suggestions.length > 0 ? (
               suggestions.map((user) => (
@@ -106,33 +116,29 @@ const SearchBar: React.FC = () => {
                 Aucun résultat
               </div>
             )
-          ) : (
-            // Sinon → historique
+          ) : searchHistory.length > 0 ? (
             <>
-              {searchHistory.length > 0 ? (
-                <>
-                  <div className="px-3 py-1 text-gray-400 text-xs">
-                    Recherches récentes
-                  </div>
-                  {searchHistory.map((term, idx) => (
-                    <div
-                      key={idx}
-                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setQuery(term);
-                        setShowDropdown(false);
-                      }}
-                    >
-                      {term}
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <div className="px-3 py-2 text-gray-500 text-sm">
-                  Aucune recherche récente
+              <div className="px-3 py-1 text-gray-400 text-xs">
+                Recherches récentes
+              </div>
+              {searchHistory.map((term, idx) => (
+                <div
+                  key={idx}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setQuery(term);
+                    addToHistory(term);
+                    setShowDropdown(false);
+                  }}
+                >
+                  {term}
                 </div>
-              )}
+              ))}
             </>
+          ) : (
+            <div className="px-3 py-2 text-gray-500 text-sm">
+              Aucune recherche récente
+            </div>
           )}
         </div>
       )}

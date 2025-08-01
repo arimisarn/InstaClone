@@ -6,6 +6,7 @@ from .views import (
     ConfirmEmailView,
     RegisterView,
     ProfileUpdateView,
+    SearchUsersView,
     get_my_profile,
     search_users,
 )
@@ -16,5 +17,5 @@ urlpatterns = [
     path("confirm-email/", ConfirmEmailView.as_view(), name="verify-email"),
     path("profile-update/", ProfileUpdateView.as_view(), name="update_profile"),
     path("profile/", get_my_profile, name="get_my_profile"),
-    path("search-users/", search_users, name="search-users"),
+    path("search-users/", SearchUsersView.as_view(), name="search-users"),
 ]

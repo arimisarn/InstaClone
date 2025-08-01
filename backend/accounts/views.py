@@ -222,3 +222,40 @@ def search_users(request):
     profiles = Profile.objects.filter(user__nom_utilisateur__icontains=query)[:5]
     serializer = SearchProfileSerializer(profiles, many=True)
     return Response(serializer.data)
+
+
+User = get_user_model()
+
+
+class SearchUsersView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]  # ou AllowAny si tu veux public
+
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get("q", "").strip()
+        if not query:
+            return Response([], status=200)
+
+        # 🔍 Recherche insensible à la casse
+        users = User.objects.filter(nom_utilisateur__icontains=query)[:10]
+
+        results = []
+        for user in users:
+            try:
+                profile = user.profile
+                results.append(
+                    {
+                        "nom_utilisateur": user.nom_utilisateur,
+                        "email": user.email,
+                        "photo_url": profile.photo_url if profile.photo_url else None,
+                    }
+                )
+            except Profile.DoesNotExist:
+                results.append(
+                    {
+                        "nom_utilisateur": user.nom_utilisateur,
+                        "email": user.email,
+                        "photo_url": None,
+                    }
+                )
+
+        return Response(results, status=200)
