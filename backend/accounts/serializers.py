@@ -94,3 +94,33 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_following(self, obj):
         return obj.following_count()
+
+# User = get_user_model()
+
+# class LoginSerializer(serializers.Serializer):
+#     nom_utilisateur = serializers.CharField()
+#     password = serializers.CharField(write_only=True)
+
+#     def validate(self, data):
+#         nom_utilisateur = data.get("nom_utilisateur")
+#         password = data.get("password")
+
+#         if nom_utilisateur and password:
+#             user = authenticate(username=nom_utilisateur, password=password)
+
+#             if not user:
+#                 raise serializers.ValidationError(
+#                     "Nom d'utilisateur ou mot de passe invalide."
+#                 )
+
+#             if not user.is_active:
+#                 raise serializers.ValidationError(
+#                     "Votre compte n'est pas encore activé. Veuillez confirmer votre email."
+#                 )
+
+#             data["user"] = user
+#             return data
+#         else:
+#             raise serializers.ValidationError(
+#                 "Veuillez fournir le nom d'utilisateur et le mot de passe."
+#             )
