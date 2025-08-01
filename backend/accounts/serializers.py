@@ -69,7 +69,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         source="user.nom_utilisateur", read_only=True
     )
     email = serializers.EmailField(source="user.email", read_only=True)
-    photo_profil = serializers.CharField(source="photo_url", read_only=True)
     nb_publications = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
     following = serializers.SerializerMethodField()
