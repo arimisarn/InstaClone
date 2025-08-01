@@ -1,22 +1,29 @@
 import time
 import traceback
-from django.shortcuts import render
-import supabase
-from .serializers import ProfileSerializer, RegisterSerializer
-from rest_framework import generics, permissions
 from django.contrib.auth import get_user_model, authenticate
-from rest_framework.permissions import AllowAny
+from django.conf import settings
+from rest_framework import generics, permissions, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from .serializers import ProfileSerializer, RegisterSerializer
 from .models import Profile
+from .supabase_client import supabase  # ✅ Nouvelle importation
 
 User = get_user_model()
 
 
+def clean_filename(name):
+    return "".join(c for c in name if c.isalnum() or c in (" ", ".", "_")).rstrip()
+
+
+# ----------------------------
+# 📌 INSCRIPTION
+# ----------------------------
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
@@ -25,7 +32,6 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-
         token, _ = Token.objects.get_or_create(user=user)
 
         return Response(
@@ -39,16 +45,17 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+# ----------------------------
+# 📌 CONNEXION
+# ----------------------------
 class LoginView(APIView):
     def post(self, request):
-        username = request.data.get("nom_utilisateur")  # 👈 On attend ce champ
+        username = request.data.get("nom_utilisateur")
         password = request.data.get("password")
 
-        user = authenticate(
-            request, username=username, password=password
-        )  # 👈 Utilise "username"
+        user = authenticate(request, username=username, password=password)
         if user:
-            token, created = Token.objects.get_or_create(user=user)
+            token, _ = Token.objects.get_or_create(user=user)
             return Response({"token": token.key})
         return Response(
             {"detail": "Nom d'utilisateur ou mot de passe incorrect."},
@@ -56,6 +63,9 @@ class LoginView(APIView):
         )
 
 
+# ----------------------------
+# 📌 CONFIRMATION EMAIL
+# ----------------------------
 class ConfirmEmailView(APIView):
     permission_classes = [AllowAny]
 
@@ -72,9 +82,7 @@ class ConfirmEmailView(APIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            return Response(
-                {"error": "Utilisateur introuvable."}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "Utilisateur introuvable."}, status=404)
 
         if user.is_active:
             return Response({"message": "Compte déjà activé."})
@@ -83,14 +91,12 @@ class ConfirmEmailView(APIView):
             user.is_active = True
             user.confirmation_code = None
             user.save()
-
-            # 👇 AJOUT : Générer le token automatiquement après confirmation
-            token, created = Token.objects.get_or_create(user=user)
+            token, _ = Token.objects.get_or_create(user=user)
 
             return Response(
                 {
                     "message": "Email confirmé avec succès.",
-                    "token": token.key,  # 👈 Token pour connexion automatique
+                    "token": token.key,
                     "user": {
                         "email": user.email,
                         "nom_utilisateur": user.nom_utilisateur,
@@ -98,24 +104,12 @@ class ConfirmEmailView(APIView):
                 }
             )
         else:
-            return Response(
-                {"error": "Code incorrect."}, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Code incorrect."}, status=400)
 
 
-from supabase import create_client
-from django.conf import settings
-
-supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
-
-
-def clean_filename(name):
-    return "".join(c for c in name if c.isalnum() or c in (" ", ".", "_")).rstrip()
-
-
-from rest_framework.parsers import MultiPartParser, FormParser
-
-
+# ----------------------------
+# 📌 MISE À JOUR PROFIL
+# ----------------------------
 class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -139,7 +133,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         photo_url = profile.photo_url
 
         try:
-            if photo_file:
+            if photo_file and supabase:  # ✅ Vérifie si supabase est dispo
                 timestamp = int(time.time())
                 safe_name = clean_filename(photo_file.name)
                 file_name = f"{request.user.id}_{timestamp}_{safe_name}"
@@ -164,7 +158,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
                 # URL publique
                 photo_url = supabase.storage.from_("avatar").get_public_url(file_name)
 
-            # Mise à jour du profil
+            # Sauvegarde profil
             profile.bio = bio
             profile.sexe = sexe
             profile.site_web = site_web
@@ -180,10 +174,13 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             return Response({"detail": f"Erreur serveur : {str(e)}"}, status=500)
 
 
+# ----------------------------
+# 📌 RÉCUPÉRER MON PROFIL
+# ----------------------------
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def get_my_profile(request):
-    profile, created = Profile.objects.get_or_create(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=request.user)
 
     if request.method == "PATCH":
         serializer = ProfileSerializer(profile, data=request.data, partial=True)
