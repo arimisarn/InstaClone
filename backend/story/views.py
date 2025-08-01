@@ -1,12 +1,14 @@
 import time
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.utils import timezone
 from .models import Story, StoryView
 from .serializers import StorySerializer, StoryViewSerializer, StoryViewerSerializer
 from .supabase_client import supabase
-# from coaching_backend.utils import clean_filename
+from .utils import (
+    clean_filename,
+)  # Assure-toi que cette fonction existe
 
 
 class StoryListView(generics.ListAPIView):
@@ -14,7 +16,9 @@ class StoryListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Story.objects.filter(expires_at__gt=timezone.now())
+        return Story.objects.filter(expires_at__gt=timezone.now()).order_by(
+            "-created_at"
+        )
 
 
 class StoryCreateView(generics.CreateAPIView):
@@ -27,7 +31,7 @@ class StoryCreateView(generics.CreateAPIView):
         image_url = None
 
         if not text and not image_file:
-            return Response({"error": "Story vide"}, status=400)
+            return Response({"error": "Story vide"}, status=status.HTTP_400_BAD_REQUEST)
 
         if image_file:
             timestamp = int(time.time())
@@ -36,10 +40,18 @@ class StoryCreateView(generics.CreateAPIView):
             supabase.storage.from_("avatar").upload(
                 file_name, image_file.read(), {"content-type": image_file.content_type}
             )
-            image_url = supabase.storage.from_("avatar").get_public_url(file_name)
+            public_url = supabase.storage.from_("avatar").get_public_url(file_name)
+            image_url = (
+                public_url.public_url
+                if hasattr(public_url, "public_url")
+                else public_url
+            )
 
         story = Story.objects.create(user=request.user, text=text, image_url=image_url)
-        return Response(StorySerializer(story, context={"request": request}).data)
+        return Response(
+            StorySerializer(story, context={"request": request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 @api_view(["POST"])
@@ -48,7 +60,7 @@ def toggle_like_story(request, pk):
     try:
         story = Story.objects.get(pk=pk)
     except Story.DoesNotExist:
-        return Response({"error": "Introuvable"}, status=404)
+        return Response({"error": "Introuvable"}, status=status.HTTP_404_NOT_FOUND)
 
     if request.user in story.likes.all():
         story.likes.remove(request.user)
@@ -69,7 +81,7 @@ def mark_story_viewed(request, pk):
     try:
         story = Story.objects.get(pk=pk)
     except Story.DoesNotExist:
-        return Response({"error": "Introuvable"}, status=404)
+        return Response({"error": "Introuvable"}, status=status.HTTP_404_NOT_FOUND)
 
     StoryView.objects.get_or_create(story=story, viewer=request.user)
     return Response({"views_count": story.views.count()})
@@ -82,15 +94,18 @@ class StoryViewersList(generics.ListAPIView):
     def get_queryset(self):
         return StoryView.objects.filter(story_id=self.kwargs["pk"])
 
-from rest_framework.permissions import IsAuthenticated
+
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([permissions.IsAuthenticated])
 def story_viewers(request, pk):
     try:
         story = Story.objects.get(pk=pk, user=request.user)
     except Story.DoesNotExist:
-        return Response({"error": "Story introuvable ou pas la vôtre"}, status=404)
+        return Response(
+            {"error": "Story introuvable ou pas la vôtre"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
-    viewers = story.views.all()  # ManyToManyField vers User
+    viewers = story.views.all()
     serializer = StoryViewerSerializer(viewers, many=True)
     return Response(serializer.data)

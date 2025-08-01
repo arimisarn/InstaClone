@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from accounts.models import CustomUser
 from .models import Story, StoryView
 
@@ -54,10 +53,9 @@ class StoryViewSerializer(serializers.ModelSerializer):
         return obj.viewer.photo_url or "/default-avatar.png"
 
 
-
 class StoryViewerSerializer(serializers.ModelSerializer):
     nom_utilisateur = serializers.CharField()
-    photo_url = serializers.CharField(source="photo", read_only=True)
+    photo_url = serializers.CharField(source="photo_url", read_only=True)
 
     class Meta:
         model = CustomUser
