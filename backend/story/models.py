@@ -3,23 +3,32 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 
+User = settings.AUTH_USER_MODEL
+
+
+def story_expiration():
+    return timezone.now() + timedelta(hours=24)
+
 
 class Story(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="stories"
-    )
-    image_url = models.URLField(max_length=500)  # Stocke URL Supabase
-    caption = models.CharField(max_length=255, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="stories")
+    text = models.CharField(max_length=300, blank=True, null=True)
+    image_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        if not self.expires_at:
-            self.expires_at = self.created_at + timedelta(hours=24)
-        super().save(*args, **kwargs)
-
-    def is_active(self):
-        return self.expires_at > timezone.now()
+    expires_at = models.DateTimeField(default=story_expiration)
+    likes = models.ManyToManyField(User, related_name="liked_stories", blank=True)
 
     def __str__(self):
-        return f"Story de {self.user.nom_utilisateur} ({self.created_at.strftime('%Y-%m-%d %H:%M')})"
+        return f"Story de {self.user}"
+
+
+class StoryView(models.Model):
+    story = models.ForeignKey(Story, on_delete=models.CASCADE, related_name="views")
+    viewer = models.ForeignKey(User, on_delete=models.CASCADE)
+    viewed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("story", "viewer")
+
+    def __str__(self):
+        return f"{self.viewer} a vu {self.story}"

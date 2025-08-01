@@ -17,6 +17,8 @@ import Accueil from "./pages/Accueil";
 import Profile from "./pages/Profile";
 import ModicationPage from "./pages/ModicationPage";
 import UserProfile from "./pages/UserProfile";
+import CreateStory from "./components/clients/CreateStory";
+import ViewStory from "./components/clients/ViewStory";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -54,14 +56,30 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
-            <Route
-              path="/user/:username"
-              element={
-                <RequireAuth>
-                  <UserProfile />
-                </RequireAuth>
-              }
-            />
+              <Route
+                path="/user/:username"
+                element={
+                  <RequireAuth>
+                    <UserProfile />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/story/create"
+                element={
+                  <RequireAuth>
+                    <CreateStory />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/story/view/:id"
+                element={
+                  <RequireAuth>
+                    <ViewStory />
+                  </RequireAuth>
+                }
+              />
             </Route>
           </Routes>
         </ToastProvider>
