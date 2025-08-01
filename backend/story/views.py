@@ -6,9 +6,6 @@ from django.utils import timezone
 from .models import Story, StoryView
 from .serializers import StorySerializer, StoryViewSerializer, StoryViewerSerializer
 from .supabase_client import supabase
-from .utils import (
-    clean_filename,
-)  # Assure-toi que cette fonction existe
 
 
 class StoryListView(generics.ListAPIView):
@@ -35,8 +32,9 @@ class StoryCreateView(generics.CreateAPIView):
 
         if image_file:
             timestamp = int(time.time())
-            safe_name = clean_filename(image_file.name)
+            safe_name = image_file.name.replace(" ", "_")  # simple nettoyage basique
             file_name = f"stories/{request.user.id}_{timestamp}_{safe_name}"
+
             supabase.storage.from_("avatar").upload(
                 file_name, image_file.read(), {"content-type": image_file.content_type}
             )
