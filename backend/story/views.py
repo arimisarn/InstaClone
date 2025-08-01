@@ -31,19 +31,26 @@ class StoryCreateView(generics.CreateAPIView):
             return Response({"error": "Story vide"}, status=status.HTTP_400_BAD_REQUEST)
 
         if image_file:
-            timestamp = int(time.time())
-            safe_name = image_file.name.replace(" ", "_")  # simple nettoyage basique
-            file_name = f"stories/{request.user.id}_{timestamp}_{safe_name}"
+            try:
+                timestamp = int(time.time())
+                safe_name = image_file.name.replace(" ", "_")
+                file_name = f"stories/{request.user.id}_{timestamp}_{safe_name}"
 
-            supabase.storage.from_("avatar").upload(
-                file_name, image_file.read(), {"content-type": image_file.content_type}
-            )
-            public_url = supabase.storage.from_("avatar").get_public_url(file_name)
-            image_url = (
-                public_url.public_url
-                if hasattr(public_url, "public_url")
-                else public_url
-            )
+                # Upload
+                supabase.storage.from_("avatar").upload(
+                    file_name,
+                    image_file.read(),
+                    {"content-type": image_file.content_type},
+                )
+
+                # URL publique
+                image_url = supabase.storage.from_("avatar").get_public_url(file_name)
+
+            except Exception as e:
+                return Response(
+                    {"error": f"Erreur upload image : {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
 
         story = Story.objects.create(user=request.user, text=text, image_url=image_url)
         return Response(
