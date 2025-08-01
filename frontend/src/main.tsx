@@ -46,7 +46,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 }
               />
               <Route
-                path="/modfication-profile"
+                path="/modification-profile"
                 element={
                   <RequireAuth>
                     <ModicationPage />
