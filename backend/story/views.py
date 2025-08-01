@@ -23,11 +23,14 @@ class StoryCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        print("Début create story")  # LOG
+
         text = request.data.get("text", "").strip() or None
         image_file = request.FILES.get("image")
         image_url = None
 
         if not text and not image_file:
+            print("Erreur : story vide")  # LOG
             return Response({"error": "Story vide"}, status=status.HTTP_400_BAD_REQUEST)
 
         if image_file:
@@ -36,37 +39,40 @@ class StoryCreateView(generics.CreateAPIView):
                 safe_name = image_file.name.replace(" ", "_")
                 file_name = f"stories/{request.user.id}_{timestamp}_{safe_name}"
 
-                # Upload vers Supabase
-                upload_res = supabase.storage.from_("avatar").upload(
+                print(f"Tentative upload image vers Supabase : {file_name}")  # LOG
+                upload_response = supabase.storage.from_("avatar").upload(
                     file_name,
                     image_file.read(),
                     {"content-type": image_file.content_type},
                 )
+                print(f"Réponse upload : {upload_response}")  # LOG
 
-                if upload_res.get("error"):
-                    return Response(
-                        {
-                            "error": f"Erreur upload Supabase: {upload_res['error']['message']}"
-                        },
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+                public_url = supabase.storage.from_("avatar").get_public_url(file_name)
+                print(f"URL publique Supabase : {public_url}")  # LOG
 
-                # Récupération URL publique
-                image_url = supabase.storage.from_("avatar").get_public_url(file_name)
-
-            except Exception as e:
-                return Response(
-                    {"error": f"Erreur upload image : {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                image_url = (
+                    public_url.public_url
+                    if hasattr(public_url, "public_url")
+                    else public_url
                 )
+                print(f"URL finale image_url : {image_url}")  # LOG
+            except Exception as e:
+                print(f"Erreur upload image : {e}")  # LOG erreur détaillée
+                return Response({"error": f"Erreur upload image : {e}"}, status=500)
 
-        # Création en base
-        story = Story.objects.create(user=request.user, text=text, image_url=image_url)
+        try:
+            story = Story.objects.create(
+                user=request.user, text=text, image_url=image_url
+            )
+            print(f"Story créée avec id {story.id}")  # LOG
+        except Exception as e:
+            print(f"Erreur création story : {e}")  # LOG erreur détaillée
+            return Response({"error": f"Erreur création story : {e}"}, status=500)
 
-        return Response(
-            StorySerializer(story, context={"request": request}).data,
-            status=status.HTTP_201_CREATED,
-        )
+        serialized = StorySerializer(story, context={"request": request}).data
+        print(f"Réponse serialization : {serialized}")  # LOG
+
+        return Response(serialized, status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])
