@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Profile
 from .models import Story, StoryView
 
 
@@ -28,7 +28,11 @@ class StorySerializer(serializers.ModelSerializer):
         ]
 
     def get_user_photo(self, obj):
-        return obj.user.photo_url or "/default-avatar.png"
+        try:
+            return obj.user.profile.photo_url or "/default-avatar.png"
+        except Profile.DoesNotExist:
+            return "/default-avatar.png"
+
 
     def get_likes_count(self, obj):
         return obj.likes.count()
@@ -37,8 +41,15 @@ class StorySerializer(serializers.ModelSerializer):
         user = self.context["request"].user
         return obj.likes.filter(id=user.id).exists()
 
+
     def get_views_count(self, obj):
         return obj.views.count()
+
+
+# class StorySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Story
+#         fields = ["id", "text", "image_url", "created_at", "expires_at"]
 
 
 class StoryViewSerializer(serializers.ModelSerializer):
