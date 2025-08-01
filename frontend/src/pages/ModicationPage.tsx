@@ -5,9 +5,9 @@ import axios from "axios";
 const ModificationPage: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [bio, setBio] = useState("");
-  const [genre, setGenre] = useState("");
+  const [gender, setGender] = useState("");
   const [sitesWeb, setSitesWeb] = useState<string[]>([""]);
-  const [afficherSuggestions, setAfficherSuggestions] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const token = localStorage.getItem("token");
@@ -22,9 +22,9 @@ const ModificationPage: React.FC = () => {
       .then((res) => {
         setProfile(res.data);
         setBio(res.data.bio || "");
-        setGenre(res.data.genre || "");
-        setSitesWeb(res.data.sites_web?.length ? res.data.sites_web : [""]);
-        setAfficherSuggestions(res.data.afficher_suggestions ?? true);
+        setGender(res.data.sexe || "");
+        setSitesWeb(res.data.site_web?.length ? res.data.site_web : [""]);
+        setShowSuggestions(res.data.show_account_suggestions ?? true);
       })
       .catch((err) => console.error(err));
   }, [token]);
@@ -47,11 +47,13 @@ const ModificationPage: React.FC = () => {
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append("bio", bio);
-    formData.append("genre", genre);
-    formData.append("afficher_suggestions", String(afficherSuggestions));
-    sitesWeb.forEach((site, i) => {
-      if (site.trim()) formData.append(`sites_web[${i}]`, site);
-    });
+    formData.append("sexe", gender);
+    formData.append("show_account_suggestions", String(showSuggestions));
+    formData.append(
+      "site_web",
+      JSON.stringify(sitesWeb.filter((s) => s.trim()))
+    );
+
     if (photoFile) {
       formData.append("photo", photoFile);
     }
@@ -87,7 +89,7 @@ const ModificationPage: React.FC = () => {
                 src={
                   photoFile
                     ? URL.createObjectURL(photoFile)
-                    : profile.photo_profil
+                    : profile.photo_url || "/default-avatar.png"
                 }
                 alt="Profile"
                 className="w-full h-full object-cover"
@@ -128,8 +130,8 @@ const ModificationPage: React.FC = () => {
           <h2 className="text-lg font-semibold mb-3">Genre</h2>
           <div className="relative">
             <select
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
               className="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-white appearance-none"
             >
               <option value="">Je préfère ne pas répondre</option>
@@ -177,14 +179,14 @@ const ModificationPage: React.FC = () => {
             Afficher les suggestions de compte
           </h2>
           <button
-            onClick={() => setAfficherSuggestions(!afficherSuggestions)}
+            onClick={() => setShowSuggestions(!showSuggestions)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              afficherSuggestions ? "bg-blue-600" : "bg-gray-600"
+              showSuggestions ? "bg-blue-600" : "bg-gray-600"
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                afficherSuggestions ? "translate-x-6" : "translate-x-1"
+                showSuggestions ? "translate-x-6" : "translate-x-1"
               }`}
             />
           </button>

@@ -55,9 +55,9 @@ class Profile(models.Model):
         ("autre", "Autre"),
     ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    photo = models.ImageField(upload_to="profile_pics/", default="default.jpg")
+    photo_url = models.URLField(blank=True, null=True)
     genre = models.CharField(max_length=20, choices=GENRE_CHOICES, blank=True, default="")
-    sites_web = ArrayField(models.URLField(), blank=True, default=list)  # plusieurs liens
+    sites_web = ArrayField(models.URLField(), blank=True, default=list)
     afficher_suggestions = models.BooleanField(default=True)
     bio = models.TextField(blank=True, default="")
     followers = models.ManyToManyField(

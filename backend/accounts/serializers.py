@@ -69,7 +69,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         source="user.nom_utilisateur", read_only=True
     )
     email = serializers.EmailField(source="user.email", read_only=True)
-    photo_profil = serializers.ImageField(source="photo", read_only=True)
+    photo_profil = serializers.CharField(source="photo_url", read_only=True)
     nb_publications = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
     following = serializers.SerializerMethodField()
@@ -79,7 +79,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             "nom_utilisateur",
             "email",
-            "photo_profil",
+            "photo_url",
             "bio",
             "nb_publications",
             "followers",
@@ -87,10 +87,11 @@ class ProfileSerializer(serializers.ModelSerializer):
             "genre",
             "sites_web",
             "afficher_suggestions",
-            "nb_publications",
-            "followers",
-            "following",
         ]
+        extra_kwargs = {
+            "bio": {"required": False, "allow_blank": True},
+            "photo_url": {"required": False, "allow_blank": True},
+        }
 
     def get_nb_publications(self, obj):
         return obj.posts_count()
@@ -100,4 +101,3 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_following(self, obj):
         return obj.following_count()
-
