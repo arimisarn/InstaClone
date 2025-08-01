@@ -180,14 +180,27 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def get_my_profile(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+    try:
+        print("🔍 USER :", request.user)
+        print("🔍 IS AUTHENTICATED :", request.user.is_authenticated)
 
-    if request.method == "PATCH":
-        serializer = ProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        print("🔍 PROFILE RÉCUPÉRÉ :", profile)
 
-    serializer = ProfileSerializer(profile)
-    return Response(serializer.data)
+        if request.method == "PATCH":
+            serializer = ProfileSerializer(profile, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            print("❌ ERREUR SERIALIZER :", serializer.errors)
+            return Response(serializer.errors, status=400)
+
+        serializer = ProfileSerializer(profile)
+        print("✅ SERIALIZER DATA :", serializer.data)
+        return Response(serializer.data)
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=500)
