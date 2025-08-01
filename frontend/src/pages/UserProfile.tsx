@@ -52,6 +52,18 @@ const UserProfile = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
+    setProfile((prev) =>
+      prev
+        ? {
+            ...prev,
+            followers: following
+              ? prev.followers - 1 // si on unfollow
+              : prev.followers + 1, // si on follow
+          }
+        : prev
+    );
+    setFollowing(!following);
+
     try {
       if (following) {
         await axios.post(
@@ -59,17 +71,35 @@ const UserProfile = () => {
           {},
           { headers: { Authorization: `Token ${token}` } }
         );
-        setFollowing(false);
       } else {
         await axios.post(
           `https://instaclone-oise.onrender.com/api/follow/${username}/`,
           {},
           { headers: { Authorization: `Token ${token}` } }
         );
-        setFollowing(true);
       }
+
+      // 3️⃣ Synchronisation avec les données réelles depuis le backend
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/users/${username}/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      setProfile(res.data);
+      setFollowing(res.data.is_following || false);
     } catch (err) {
       console.error("Erreur suivi :", err);
+
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              followers: following ? prev.followers + 1 : prev.followers - 1,
+            }
+          : prev
+      );
+      setFollowing(following);
     }
   };
 

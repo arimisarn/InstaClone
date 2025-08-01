@@ -54,7 +54,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
-            </Route>
             <Route
               path="/user/:username"
               element={
@@ -63,6 +62,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 </RequireAuth>
               }
             />
+            </Route>
           </Routes>
         </ToastProvider>
       </ThemeProvider>
