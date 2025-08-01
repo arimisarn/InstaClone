@@ -103,10 +103,8 @@ class ConfirmEmailView(APIView):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_my_profile(request):
-    try:
-        profile = Profile.objects.get(user=request.user)
-    except Profile.DoesNotExist:
-        return Response({"detail": "Profil introuvable."}, status=404)
+    # Crée le profil si inexistant
+    profile, created = Profile.objects.get_or_create(user=request.user)
 
     serializer = ProfileSerializer(profile, context={"request": request})
     return Response(serializer.data)

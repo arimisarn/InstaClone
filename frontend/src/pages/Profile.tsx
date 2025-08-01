@@ -5,12 +5,14 @@ import axios from "axios";
 interface ProfileData {
   nom_utilisateur: string;
   email: string;
-  photo_profil: string;
+  photo_profil: string | null;
   bio: string;
   nb_publications: number;
   followers: number;
   following: number;
 }
+
+// const DEFAULT_AVATAR = "/default-avatar.png"; // mettre le chemin vers une image par défaut dans public
 
 const Profile = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
@@ -19,11 +21,15 @@ const Profile = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Charger les données du profil depuis l'API
   useEffect(() => {
     const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token d'authentification manquant.");
+        setLoading(false);
+        return;
+      }
       try {
-        const token = localStorage.getItem("token");
         const res = await axios.get(
           "https://instaclone-oise.onrender.com/api/profile/",
           {
@@ -35,6 +41,7 @@ const Profile = () => {
         setProfile(res.data);
       } catch (err) {
         console.error("Erreur lors du chargement du profil", err);
+        setProfile(null);
       } finally {
         setLoading(false);
       }
@@ -86,7 +93,9 @@ const Profile = () => {
           <div className="relative">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-800">
               <img
-                src={profile.photo_profil}
+                // src={
+                //   profile.photo_profil ? profile.photo_profil : DEFAULT_AVATAR
+                // }
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
