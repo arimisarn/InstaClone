@@ -100,3 +100,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_following(self, obj):
         return obj.following_count()
+
+
+class SearchProfileSerializer(serializers.ModelSerializer):
+    nom_utilisateur = serializers.CharField(source="user.nom_utilisateur")
+    email = serializers.EmailField(source="user.email")
+
+    class Meta:
+        model = Profile
+        fields = ["id", "nom_utilisateur", "email", "photo_url"]

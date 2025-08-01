@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .serializers import ProfileSerializer, RegisterSerializer
+from .serializers import ProfileSerializer, RegisterSerializer, SearchProfileSerializer
 from .models import Profile
 from .supabase_client import supabase
 
@@ -219,5 +219,6 @@ def search_users(request):
     if not query:
         return Response([])
 
-    results = Profile.objects.filter(user__nom_utilisateur__icontains=query)[:5]
-    return Response(ProfileSerializer(results, many=True).data)
+    profiles = Profile.objects.filter(user__nom_utilisateur__icontains=query)[:5]
+    serializer = SearchProfileSerializer(profiles, many=True)
+    return Response(serializer.data)
