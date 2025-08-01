@@ -101,10 +101,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         return obj.posts_count()
 
     def get_followers(self, obj):
-        return obj.followers_count()
+        # ✅ personnes qui suivent cet utilisateur
+        return obj.followers.count()
 
     def get_following(self, obj):
-        return obj.following_count()
+        # ✅ personnes que cet utilisateur suit
+        return Profile.objects.filter(followers=obj.user).count()
 
     def get_is_following(self, obj):
         request = self.context.get("request", None)
