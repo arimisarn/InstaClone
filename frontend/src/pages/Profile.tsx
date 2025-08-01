@@ -10,6 +10,7 @@ interface ProfileData {
   nb_publications: number;
   followers: number;
   following: number;
+  sites_web?: string[];
 }
 
 // const DEFAULT_AVATAR = "/default-avatar.png"; // mettre le chemin vers une image par défaut dans public
@@ -95,9 +96,11 @@ const Profile = () => {
           <div className="relative">
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-800">
               <img
-                // src={
-                //   profile.photo_profil ? profile.photo_profil : DEFAULT_AVATAR
-                // }
+                src={
+                  profile.photo_profil && profile.photo_profil.trim() !== ""
+                    ? profile.photo_profil
+                    : "/default-avatar.png" // ton image par défaut
+                }
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -131,6 +134,21 @@ const Profile = () => {
               <p className="text-gray-400">{profile.bio}</p>
             </div>
           </div>
+          {profile.sites_web && profile.sites_web.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {profile.sites_web.map((site: string, index: number) => (
+                <a
+                  key={index}
+                  href={site}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 text-sm hover:underline break-all"
+                >
+                  {site}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Add Story Circle */}
