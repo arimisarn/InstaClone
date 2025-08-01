@@ -286,8 +286,8 @@ def get_user_profile(request, username):
             "photo_url": profile.photo.url if profile and profile.photo else None,
             "bio": profile.bio if profile else "",
             "nb_publications": user.posts.count() if hasattr(user, "posts") else 0,
-            "followers": profile.followers.count() if profile else 0,
-            "following": user.following.count() if hasattr(user, "following") else 0,
+            "followers": profile.followers.count(),
+            "following": user.following.count(),
             "sites_web": profile.sites_web if profile and profile.sites_web else [],
             "is_following": (
                 profile.followers.filter(id=request.user.id).exists()
@@ -304,16 +304,16 @@ from django.shortcuts import get_object_or_404
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def follow_user(request, username):
-    if request.user.nom_utilisateur == username:
-        return Response(
-            {"detail": "Vous ne pouvez pas vous suivre vous-même."}, status=400
-        )
-
     user_to_follow = get_object_or_404(User, nom_utilisateur=username)
     profile_to_follow = get_object_or_404(Profile, user=user_to_follow)
 
     profile_to_follow.followers.add(request.user)
     profile_to_follow.save()
+
+    print(
+        f"{request.user.nom_utilisateur} suit maintenant {user_to_follow.nom_utilisateur}"
+    )
+    print(f"Nombre followers : {profile_to_follow.followers.count()}")
 
     return Response({"detail": "Utilisateur suivi"})
 
