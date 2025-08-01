@@ -107,7 +107,6 @@ const FacebookNavbar: React.FC = () => {
               )}
             </button>
 
-            {/* Amis */}
             <button
               onClick={() => setActiveTab("friends")}
               className={`relative p-3 rounded-lg transition-colors duration-200 ${
@@ -122,7 +121,6 @@ const FacebookNavbar: React.FC = () => {
               )}
             </button>
 
-            {/* Watch */}
             <button
               onClick={() => setActiveTab("watch")}
               className={`relative p-3 rounded-lg transition-colors duration-200 ${
@@ -137,7 +135,7 @@ const FacebookNavbar: React.FC = () => {
               )}
             </button>
 
-            {/* Marketplace */}
+
             <button
               onClick={() => setActiveTab("marketplace")}
               className={`relative p-3 rounded-lg transition-colors duration-200 ${
