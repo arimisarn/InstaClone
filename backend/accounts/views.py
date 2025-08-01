@@ -310,18 +310,22 @@ from django.shortcuts import get_object_or_404
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def follow_user(request, username):
+    print("=== DEBUG FOLLOW ===")
+    print("Username reçu :", username)
+    print("Utilisateur connecté :", request.user.nom_utilisateur)
+
     user_to_follow = get_object_or_404(User, nom_utilisateur=username)
     profile_to_follow = get_object_or_404(Profile, user=user_to_follow)
 
     profile_to_follow.followers.add(request.user)
     profile_to_follow.save()
 
-    print(
-        f"{request.user.nom_utilisateur} suit maintenant {user_to_follow.nom_utilisateur}"
+    return Response(
+        {
+            "detail": "Utilisateur suivi",
+            "followers": profile_to_follow.followers.count(),
+        }
     )
-    print(f"Nombre followers : {profile_to_follow.followers.count()}")
-
-    return Response({"detail": "Utilisateur suivi"})
 
 
 @api_view(["POST"])
