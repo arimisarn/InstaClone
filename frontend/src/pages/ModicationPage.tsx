@@ -51,7 +51,7 @@ const ModificationPage: React.FC = () => {
     const formData = new FormData();
     formData.append("bio", bio);
     formData.append("genre", gender);
-    formData.append("show_account_suggestions", String(showSuggestions));
+    formData.append("afficher_suggestions", String(showSuggestions));
     formData.append(
       "site_web",
       JSON.stringify(sitesWeb.filter((s) => s.trim()))

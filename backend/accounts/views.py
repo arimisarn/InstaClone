@@ -1,4 +1,5 @@
 import json
+import profile
 import time
 import traceback
 from django.contrib.auth import get_user_model, authenticate
@@ -130,7 +131,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             bio = request.data.get("bio", profile.bio)
             genre = request.data.get("genre", profile.genre)
             show_suggestions = request.data.get(
-                "show_account_suggestions", profile.show_account_suggestions
+                "afficher_suggestions", profile.afficher_suggestions
             )
 
             # ✅ Récupération des sites web
@@ -181,7 +182,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             profile.bio = bio
             profile.genre = genre
             profile.site_web = site_web
-            profile.show_account_suggestions = show_suggestions
+            profile.afficher_suggestions = show_suggestions
             profile.photo_url = photo_url
             profile.save()
 
