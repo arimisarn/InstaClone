@@ -15,7 +15,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import ProfileSerializer, RegisterSerializer
 from .models import Profile
-from .supabase_client import supabase  # ✅ Nouvelle importation
+from .supabase_client import supabase
 
 User = get_user_model()
 
@@ -24,9 +24,6 @@ def clean_filename(name):
     return "".join(c for c in name if c.isalnum() or c in (" ", ".", "_")).rstrip()
 
 
-# ----------------------------
-# 📌 INSCRIPTION
-# ----------------------------
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
@@ -48,9 +45,6 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
-# ----------------------------
-# 📌 CONNEXION
-# ----------------------------
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get("nom_utilisateur")
@@ -122,19 +116,16 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         profile = self.get_object()
 
-        # 🔍 Debug : voir ce que reçoit le backend
         print("📌 DATA REÇUE :", dict(request.data))
         print("📌 FILES REÇUS :", request.FILES)
 
         try:
-            # ✅ Récupération des champs simples
             bio = request.data.get("bio", profile.bio)
             genre = request.data.get("genre", profile.genre)
             show_suggestions = request.data.get(
                 "afficher_suggestions", profile.afficher_suggestions
             )
 
-            # ✅ Récupération des sites web
             sites_web = profile.sites_web
             if "sites_web" in request.data:
                 try:
@@ -146,8 +137,6 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             elif "sites_web[]" in request.data:
                 sites_web = request.data.getlist("sites_web[]")
 
-
-            # ✅ Gestion de la photo
             photo_file = request.FILES.get("photo")
             photo_url = profile.photo_url
 
@@ -176,10 +165,8 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
                     else:
                         raise e
 
-                # URL publique
                 photo_url = supabase.storage.from_("avatar").get_public_url(file_name)
 
-            # ✅ Sauvegarde profil
             profile.bio = bio
             profile.genre = genre
             profile.site_web = sites_web
@@ -196,9 +183,6 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             return Response({"detail": f"Erreur serveur : {str(e)}"}, status=500)
 
 
-# ----------------------------
-# 📌 RÉCUPÉRER MON PROFIL
-# ----------------------------
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def get_my_profile(request):
@@ -226,3 +210,14 @@ def get_my_profile(request):
 
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def search_users(request):
+    query = request.GET.get("q", "").strip()
+    if not query:
+        return Response([])
+
+    results = Profile.objects.filter(user__nom_utilisateur__icontains=query)[:5]
+    return Response(ProfileSerializer(results, many=True).data)

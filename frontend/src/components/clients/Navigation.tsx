@@ -10,9 +10,36 @@ import {
   Bell,
   ChevronDown,
 } from "lucide-react";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 const FacebookNavbar: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+
+  const handleSearch = async (value: string) => {
+    setQuery(value);
+    if (value.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/search-users/?q=${encodeURIComponent(
+          value
+        )}`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      setResults(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -31,9 +58,34 @@ const FacebookNavbar: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Rechercher sur Facebook"
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Rechercher un utilisateur"
+              value={query}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+
+            {/* Résultats */}
+            {results.length > 0 && (
+              <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg overflow-hidden z-50">
+                {results.map((user) => (
+                  <Link
+                    to={`/profile/${user.user_id}`}
+                    key={user.user_id}
+                    className="flex items-center p-2 hover:bg-gray-100"
+                    onClick={() => setQuery("")}
+                  >
+                    <img
+                      src={user.photo_url || "/default-avatar.png"}
+                      alt={user.nom_utilisateur}
+                      className="w-8 h-8 rounded-full object-cover mr-3"
+                    />
+                    <span className="text-gray-800">
+                      {user.nom_utilisateur}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
