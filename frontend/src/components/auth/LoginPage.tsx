@@ -53,7 +53,7 @@ export default function LoginPage() {
       toast({ title: "Succès", description: "Connexion réussie !" });
       setTimeout(() => {
         setOpen(false);
-        navigate("/dashboard");
+        navigate("/accueil");
       }, 1500);
     } catch (error: any) {
       const msg =
