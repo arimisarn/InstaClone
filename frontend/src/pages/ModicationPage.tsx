@@ -53,7 +53,7 @@ const ModificationPage: React.FC = () => {
     formData.append("genre", gender);
     formData.append("afficher_suggestions", String(showSuggestions));
     formData.append(
-      "site_web",
+      "sites_web",
       JSON.stringify(sitesWeb.filter((s) => s.trim()))
     );
 

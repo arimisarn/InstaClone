@@ -135,16 +135,17 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             )
 
             # ✅ Récupération des sites web
-            site_web = profile.site_web
-            if "site_web" in request.data:
+            sites_web = profile.sites_web
+            if "sites_web" in request.data:
                 try:
-                    site_web = json.loads(request.data.get("site_web"))
-                    if not isinstance(site_web, list):
-                        site_web = [str(site_web)]
+                    sites_web = json.loads(request.data.get("sites_web"))
+                    if not isinstance(sites_web, list):
+                        sites_web = [str(sites_web)]
                 except Exception:
-                    site_web = [request.data.get("site_web")]
-            elif "site_web[]" in request.data:
-                site_web = request.data.getlist("site_web[]")
+                    sites_web = [request.data.get("sites_web")]
+            elif "sites_web[]" in request.data:
+                sites_web = request.data.getlist("sites_web[]")
+
 
             # ✅ Gestion de la photo
             photo_file = request.FILES.get("photo")
@@ -181,7 +182,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             # ✅ Sauvegarde profil
             profile.bio = bio
             profile.genre = genre
-            profile.site_web = site_web
+            profile.site_web = sites_web
             profile.afficher_suggestions = show_suggestions
             profile.photo_url = photo_url
             profile.save()
