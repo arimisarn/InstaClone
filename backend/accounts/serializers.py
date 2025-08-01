@@ -123,3 +123,12 @@ class SearchProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ["id", "nom_utilisateur", "email", "photo_url"]
+
+
+class ProfileMiniSerializer(serializers.ModelSerializer):
+    nom_utilisateur = serializers.CharField(source="user.nom_utilisateur")
+    email = serializers.EmailField(source="user.email")
+
+    class Meta:
+        model = Profile
+        fields = ["nom_utilisateur", "email", "photo_url", "bio"]

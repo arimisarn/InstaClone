@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
-import { Grid3X3, UserCheck, Camera, Plus } from "lucide-react";
+import { Grid3X3, UserCheck, Camera, Plus, X } from "lucide-react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+
+interface MiniUser {
+  nom_utilisateur: string;
+  photo_url: string | null;
+  bio?: string;
+}
 
 interface ProfileData {
   nom_utilisateur: string;
@@ -15,11 +21,41 @@ interface ProfileData {
   is_following?: boolean;
 }
 
+const Modal = ({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-start pt-20 z-50">
+      <div className="bg-gray-900 rounded-md w-96 max-h-[70vh] overflow-auto p-4 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-400 hover:text-white"
+          aria-label="Fermer la modale"
+        >
+          <X size={20} />
+        </button>
+        <h2 className="text-xl font-semibold mb-4">{title}</h2>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalUsers, setModalUsers] = useState<MiniUser[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -79,6 +115,41 @@ const UserProfile = () => {
     }
   };
 
+  // Charge la liste des followers ou following et ouvre la modale
+  const openFollowers = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/users/${username}/followers/`,
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setModalUsers(res.data);
+      setModalTitle("Followers");
+      setShowModal(true);
+    } catch (err) {
+      console.error("Erreur chargement followers :", err);
+    }
+  };
+
+  const openFollowing = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/users/${username}/following/`,
+        { headers: { Authorization: `Token ${token}` } }
+      );
+      setModalUsers(res.data);
+      setModalTitle("Suivi(e)s");
+      setShowModal(true);
+    } catch (err) {
+      console.error("Erreur chargement following :", err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen text-white">
@@ -123,17 +194,25 @@ const UserProfile = () => {
           {/* Stats + Bio */}
           <div className="flex-1">
             <div className="flex space-x-8 mb-4">
-              <div className="text-center">
-                <div className="font-semibold">{profile.nb_publications}</div>
-                <div className="text-gray-400 text-sm">publications</div>
-              </div>
-              <div className="text-center">
+              <div
+                className="text-center cursor-pointer"
+                onClick={openFollowers}
+                title="Voir les followers"
+              >
                 <div className="font-semibold">{profile.followers}</div>
                 <div className="text-gray-400 text-sm">followers</div>
               </div>
-              <div className="text-center">
+              <div
+                className="text-center cursor-pointer"
+                onClick={openFollowing}
+                title="Voir les personnes suivies"
+              >
                 <div className="font-semibold">{profile.following}</div>
                 <div className="text-gray-400 text-sm">suivi(e)s</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold">{profile.nb_publications}</div>
+                <div className="text-gray-400 text-sm">publications</div>
               </div>
             </div>
             <div className="mb-4">
@@ -200,6 +279,38 @@ const UserProfile = () => {
         </div>
         <h3 className="text-xl font-light mb-2">Aucune photo</h3>
       </div>
+
+      {/* Modal liste followers / following */}
+      {showModal && (
+        <Modal title={modalTitle} onClose={() => setShowModal(false)}>
+          {modalUsers.length === 0 ? (
+            <p className="text-gray-400">Aucun utilisateur à afficher.</p>
+          ) : (
+            <ul>
+              {modalUsers.map((user) => (
+                <li
+                  key={user.nom_utilisateur}
+                  className="flex items-center space-x-4 mb-3 border-b border-gray-700 pb-2"
+                >
+                  <img
+                    src={
+                      user.photo_url && user.photo_url.trim() !== ""
+                        ? user.photo_url
+                        : "/default-avatar.png"
+                    }
+                    alt={user.nom_utilisateur}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-semibold">{user.nom_utilisateur}</p>
+                    <p className="text-gray-400 text-sm">{user.bio}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Modal>
+      )}
     </div>
   );
 };

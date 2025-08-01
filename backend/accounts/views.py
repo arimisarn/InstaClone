@@ -13,7 +13,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .serializers import ProfileSerializer, RegisterSerializer, SearchProfileSerializer
+from .serializers import (
+    ProfileMiniSerializer,
+    ProfileSerializer,
+    RegisterSerializer,
+    SearchProfileSerializer,
+)
 from .models import Profile
 from .supabase_client import supabase
 
@@ -353,3 +358,24 @@ def unfollow_user(request, username):
     profile_to_unfollow.save()
 
     return Response({"detail": "Utilisateur non suivi"})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_followers(request, username):
+    profile = get_object_or_404(Profile, user__nom_utilisateur=username)
+    followers_qs = profile.followers.all()  # liste d'utilisateurs
+    profiles = Profile.objects.filter(user__in=followers_qs)
+    serializer = ProfileMiniSerializer(profiles, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_following(request, username):
+    profile = get_object_or_404(Profile, user__nom_utilisateur=username)
+    following_qs = Profile.objects.filter(
+        followers=profile.user
+    )  # profils suivis par l'utilisateur
+    serializer = ProfileMiniSerializer(following_qs, many=True)
+    return Response(serializer.data)

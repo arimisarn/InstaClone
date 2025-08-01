@@ -10,6 +10,8 @@ from .views import (
     follow_user,
     get_my_profile,
     get_user_profile,
+    list_followers,
+    list_following,
     search_users,
     unfollow_user,
 )
@@ -24,4 +26,6 @@ urlpatterns = [
     path("users/<str:username>/", get_user_profile),
     path("follow/<str:username>/", follow_user),
     path("unfollow/<str:username>/", unfollow_user),
+    path("users/<str:username>/followers/", list_followers, name="list-followers"),
+    path("users/<str:username>/following/", list_following, name="list-following"),
 ]
