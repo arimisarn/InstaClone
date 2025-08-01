@@ -170,7 +170,17 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         except Exception as e:
             traceback.print_exc()
             return Response({"detail": f"Erreur serveur : {str(e)}"}, status=500)
-
+    @api_view(["GET"])
+    @permission_classes([IsAuthenticated])
+    def get_my_profile(request):
+        try:
+            profile, _ = Profile.objects.get_or_create(user=request.user)
+            serializer = ProfileSerializer(profile, context={"request": request})
+            return Response(serializer.data)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=500)
 
 # @api_view(["GET", "PATCH"])
 # @permission_classes([IsAuthenticated])
