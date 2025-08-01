@@ -16,7 +16,7 @@ const ModificationPage: React.FC = () => {
   useEffect(() => {
     if (!token) return;
     axios
-      .get("https://instaclone-oise.onrender.com/api/profile/", {
+      .get("https://instaclone-oise.onrender.com/api/profile-update/", {
         headers: { Authorization: `Token ${token}` },
       })
       .then((res) => {
