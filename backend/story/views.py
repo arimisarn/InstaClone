@@ -36,14 +36,22 @@ class StoryCreateView(generics.CreateAPIView):
                 safe_name = image_file.name.replace(" ", "_")
                 file_name = f"stories/{request.user.id}_{timestamp}_{safe_name}"
 
-                # Upload
-                supabase.storage.from_("avatar").upload(
+                # Upload vers Supabase
+                upload_res = supabase.storage.from_("avatar").upload(
                     file_name,
                     image_file.read(),
                     {"content-type": image_file.content_type},
                 )
 
-                # URL publique
+                if upload_res.get("error"):
+                    return Response(
+                        {
+                            "error": f"Erreur upload Supabase: {upload_res['error']['message']}"
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+
+                # Récupération URL publique
                 image_url = supabase.storage.from_("avatar").get_public_url(file_name)
 
             except Exception as e:
@@ -52,7 +60,9 @@ class StoryCreateView(generics.CreateAPIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
 
+        # Création en base
         story = Story.objects.create(user=request.user, text=text, image_url=image_url)
+
         return Response(
             StorySerializer(story, context={"request": request}).data,
             status=status.HTTP_201_CREATED,
