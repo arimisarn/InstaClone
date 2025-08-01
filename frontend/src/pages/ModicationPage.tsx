@@ -16,7 +16,7 @@ const ModificationPage: React.FC = () => {
   useEffect(() => {
     if (!token) return;
     axios
-      .put("https://instaclone-oise.onrender.com/api/profile-update/", {
+      .get("https://instaclone-oise.onrender.com/api/profile-update/", {
         headers: { Authorization: `Token ${token}` },
       })
       .then((res) => {
@@ -53,14 +53,13 @@ const ModificationPage: React.FC = () => {
       "site_web",
       JSON.stringify(sitesWeb.filter((s) => s.trim()))
     );
-
     if (photoFile) {
       formData.append("photo", photoFile);
     }
 
     try {
       await axios.put(
-        "https://instaclone-oise.onrender.com/api/profile/",
+        "https://instaclone-oise.onrender.com/api/profile-update/",
         formData,
         {
           headers: {
