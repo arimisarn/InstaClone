@@ -64,6 +64,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+from rest_framework import serializers
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     nom_utilisateur = serializers.CharField(
         source="user.nom_utilisateur", read_only=True
@@ -72,6 +75,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     nb_publications = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
     following = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -86,6 +90,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "genre",
             "sites_web",
             "afficher_suggestions",
+            "is_following",
         ]
         extra_kwargs = {
             "bio": {"required": False, "allow_blank": True},
@@ -100,6 +105,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_following(self, obj):
         return obj.following_count()
+
+    def get_is_following(self, obj):
+        request = self.context.get("request", None)
+        if request and request.user.is_authenticated:
+            # L’utilisateur connecté suit-il ce profil ?
+            return obj.followers.filter(pk=request.user.pk).exists()
+        return False
 
 
 class SearchProfileSerializer(serializers.ModelSerializer):

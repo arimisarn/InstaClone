@@ -69,10 +69,13 @@ class Profile(models.Model):
         return self.user.posts.count() if hasattr(self.user, "posts") else 0
 
     def following_count(self):
+        # Combien de profils cet utilisateur suit ?
         return self.user.following.count() if hasattr(self.user, "following") else 0
 
     def followers_count(self):
-        return self.user.followers.count() if hasattr(self.user, "followers") else 0
+        # Combien de profils suivent cet utilisateur (followers)
+        return self.followers.count()
+
 
     def __str__(self):
         return f"Profil de {self.user.nom_utilisateur}"
