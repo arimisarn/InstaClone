@@ -101,13 +101,21 @@ class ConfirmEmailView(APIView):
             return Response(
                 {"error": "Code incorrect."}, status=status.HTTP_400_BAD_REQUEST
             )
+
+
 from supabase import create_client
 from django.conf import settings
+
 supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+
+
 def clean_filename(name):
     return "".join(c for c in name if c.isalnum() or c in (" ", ".", "_")).rstrip()
 
+
 from rest_framework.parsers import MultiPartParser, FormParser
+
+
 class ProfileUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -170,29 +178,19 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         except Exception as e:
             traceback.print_exc()
             return Response({"detail": f"Erreur serveur : {str(e)}"}, status=500)
-    @api_view(["GET"])
-    @permission_classes([IsAuthenticated])
-    def get_my_profile(request):
-        try:
-            profile, _ = Profile.objects.get_or_create(user=request.user)
-            serializer = ProfileSerializer(profile, context={"request": request})
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def get_my_profile(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+
+    if request.method == "PATCH":
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data)
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return Response({"error": str(e)}, status=500)
+        return Response(serializer.errors, status=400)
 
-# @api_view(["GET", "PATCH"])
-# @permission_classes([IsAuthenticated])
-# def get_my_profile(request):
-#     profile, created = Profile.objects.get_or_create(user=request.user)
-
-#     if request.method == "PATCH":
-#         serializer = ProfileSerializer(profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=400)
-
-#     serializer = ProfileSerializer(profile)
-#     return Response(serializer.data)
+    serializer = ProfileSerializer(profile)
+    return Response(serializer.data)
