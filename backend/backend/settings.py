@@ -111,3 +111,6 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.CustomUser"
 TIME_ZONE = "Indian/Antananarivo"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+    

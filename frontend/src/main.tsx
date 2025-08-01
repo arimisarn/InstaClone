@@ -36,8 +36,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
-               <Route element={<Layout />}>
-              <Route
+               <Route
                 path="/profile"
                 element={
                   <RequireAuth>

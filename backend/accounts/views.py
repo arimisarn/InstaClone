@@ -7,7 +7,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from .models import Profile
 
 User = get_user_model()
 
@@ -97,9 +99,14 @@ class ConfirmEmailView(APIView):
                 {"error": "Code incorrect."}, status=status.HTTP_400_BAD_REQUEST
             )
 
-class MyProfileView(generics.RetrieveAPIView):
-    serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self):
-        return self.request.user.profile
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_my_profile(request):
+    try:
+        profile = Profile.objects.get(user=request.user)
+    except Profile.DoesNotExist:
+        return Response({"detail": "Profil introuvable."}, status=404)
+
+    serializer = ProfileSerializer(profile, context={"request": request})
+    return Response(serializer.data)

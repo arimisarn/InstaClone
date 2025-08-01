@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser,Profile
+from .models import CustomUser, Profile
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
@@ -65,27 +65,32 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    posts_count = serializers.SerializerMethodField()
-    followers_count = serializers.SerializerMethodField()
-    following_count = serializers.SerializerMethodField()
-    nom_utilisateur = serializers.CharField(source="user.nom_utilisateur")
+    nom_utilisateur = serializers.CharField(
+        source="user.nom_utilisateur", read_only=True
+    )
+    email = serializers.EmailField(source="user.email", read_only=True)
+    photo_profil = serializers.ImageField(source="photo", read_only=True)
+    nb_publications = serializers.SerializerMethodField()
+    followers = serializers.SerializerMethodField()
+    following = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = [
             "nom_utilisateur",
-            "photo",
+            "email",
+            "photo_profil",
             "bio",
-            "posts_count",
-            "followers_count",
-            "following_count",
+            "nb_publications",
+            "followers",
+            "following",
         ]
 
-    def get_posts_count(self, obj):
+    def get_nb_publications(self, obj):
         return obj.posts_count()
 
-    def get_followers_count(self, obj):
+    def get_followers(self, obj):
         return obj.followers_count()
 
-    def get_following_count(self, obj):
+    def get_following(self, obj):
         return obj.following_count()

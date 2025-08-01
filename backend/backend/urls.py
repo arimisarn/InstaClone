@@ -15,5 +15,4 @@ urlpatterns = [
     path("", health_check),
     path("admin/", admin.site.urls),
     path("api/", include("accounts.urls")),
-]
-
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
