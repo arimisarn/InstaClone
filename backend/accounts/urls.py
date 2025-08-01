@@ -7,8 +7,11 @@ from .views import (
     RegisterView,
     ProfileUpdateView,
     SearchUsersView,
+    follow_user,
     get_my_profile,
+    get_user_profile,
     search_users,
+    unfollow_user,
 )
 
 urlpatterns = [
@@ -18,4 +21,7 @@ urlpatterns = [
     path("profile-update/", ProfileUpdateView.as_view(), name="update_profile"),
     path("profile/", get_my_profile, name="get_my_profile"),
     path("search-users/", SearchUsersView.as_view(), name="search-users"),
+    path("users/<str:username>/", get_user_profile),
+    path("follow/<str:username>/", follow_user),
+    path("unfollow/<str:username>/", unfollow_user),
 ]

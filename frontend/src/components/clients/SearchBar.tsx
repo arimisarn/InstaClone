@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 interface UserSuggestion {
   id: number;
   nom_utilisateur: string;
@@ -9,6 +9,7 @@ interface UserSuggestion {
 }
 
 const SearchBar: React.FC = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<UserSuggestion[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -90,7 +91,7 @@ const SearchBar: React.FC = () => {
       </div>
 
       {showDropdown && (
-        <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg border border-gray-200 z-50 max-h-64 overflow-auto">
+        <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg border border-gray-200 z-50">
           {query.trim() !== "" ? (
             suggestions.length > 0 ? (
               suggestions.map((user) => (
@@ -99,8 +100,9 @@ const SearchBar: React.FC = () => {
                   className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
                     addToHistory(user.nom_utilisateur);
-                    setQuery(user.nom_utilisateur);
+                    setQuery("");
                     setShowDropdown(false);
+                    navigate(`/user/${user.nom_utilisateur}`);
                   }}
                 >
                   <img
@@ -116,29 +118,34 @@ const SearchBar: React.FC = () => {
                 Aucun résultat
               </div>
             )
-          ) : searchHistory.length > 0 ? (
-            <>
-              <div className="px-3 py-1 text-gray-400 text-xs">
-                Recherches récentes
-              </div>
-              {searchHistory.map((term, idx) => (
-                <div
-                  key={idx}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setQuery(term);
-                    addToHistory(term);
-                    setShowDropdown(false);
-                  }}
-                >
-                  {term}
-                </div>
-              ))}
-            </>
           ) : (
-            <div className="px-3 py-2 text-gray-500 text-sm">
-              Aucune recherche récente
-            </div>
+            // Historique
+            <>
+              {searchHistory.length > 0 ? (
+                <>
+                  <div className="px-3 py-1 text-gray-400 text-xs">
+                    Recherches récentes
+                  </div>
+                  {searchHistory.map((term, idx) => (
+                    <div
+                      key={idx}
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setQuery(term);
+                        setShowDropdown(false);
+                        navigate(`/user/${term}`);
+                      }}
+                    >
+                      {term}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className="px-3 py-2 text-gray-500 text-sm">
+                  Aucune recherche récente
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

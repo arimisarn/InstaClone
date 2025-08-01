@@ -215,13 +215,23 @@ def get_my_profile(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def search_users(request):
-    query = request.GET.get("q", "").strip()
-    if not query:
+    q = request.GET.get("q", "").strip()
+    if not q:
         return Response([])
-
-    profiles = Profile.objects.filter(user__nom_utilisateur__icontains=query)[:5]
-    serializer = SearchProfileSerializer(profiles, many=True)
-    return Response(serializer.data)
+    users = User.objects.filter(nom_utilisateur__icontains=q)[:10]
+    results = [
+        {
+            "user_id": u.id,
+            "nom_utilisateur": u.nom_utilisateur,
+            "photo_url": (
+                u.profile.photo.url
+                if hasattr(u, "profile") and u.profile.photo
+                else None
+            ),
+        }
+        for u in users
+    ]
+    return Response(results)
 
 
 User = get_user_model()
@@ -259,3 +269,46 @@ class SearchUsersView(generics.GenericAPIView):
                 )
 
         return Response(results, status=200)
+
+
+from django.shortcuts import get_object_or_404
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request, username):
+    user = get_object_or_404(User, nom_utilisateur=username)
+    profile = getattr(user, "profile", None)
+    return Response(
+        {
+            "nom_utilisateur": user.nom_utilisateur,
+            "email": user.email,
+            "photo_url": profile.photo.url if profile and profile.photo else None,
+            "bio": profile.bio if profile else "",
+            "nb_publications": user.posts.count() if hasattr(user, "posts") else 0,
+            "followers": user.followers.count() if hasattr(user, "followers") else 0,
+            "following": user.following.count() if hasattr(user, "following") else 0,
+            "sites_web": profile.sites_web if profile and profile.sites_web else [],
+            "is_following": (
+                request.user in user.followers.all()
+                if hasattr(user, "followers")
+                else False
+            ),
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def follow_user(request, username):
+    target = get_object_or_404(User, nom_utilisateur=username)
+    request.user.following.add(target)
+    return Response({"detail": "Followed"})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def unfollow_user(request, username):
+    target = get_object_or_404(User, nom_utilisateur=username)
+    request.user.following.remove(target)
+    return Response({"detail": "Unfollowed"})

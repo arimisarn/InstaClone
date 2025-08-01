@@ -51,41 +51,6 @@ const FacebookNavbar: React.FC = () => {
             <span className="text-white font-bold text-xl">f</span>
           </div>
 
-          {/* Barre de recherche */}
-          {/* <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Rechercher un utilisateur"
-              value={query}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            {results.length > 0 && (
-              <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg overflow-hidden z-50">
-                {results.map((user) => (
-                  <Link
-                    to={`/profile/${user.user_id}`}
-                    key={user.user_id}
-                    className="flex items-center p-2 hover:bg-gray-100"
-                    onClick={() => setQuery("")}
-                  >
-                    <img
-                      src={user.photo_url || "/default-avatar.png"}
-                      alt={user.nom_utilisateur}
-                      className="w-8 h-8 rounded-full object-cover mr-3"
-                    />
-                    <span className="text-gray-800">
-                      {user.nom_utilisateur}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div> */}
           <SearchBar />
         </div>
 

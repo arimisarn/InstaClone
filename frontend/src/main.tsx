@@ -16,6 +16,7 @@ import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import Accueil from "./pages/Accueil";
 import Profile from "./pages/Profile";
 import ModicationPage from "./pages/ModicationPage";
+import UserProfile from "./pages/UserProfile";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -54,6 +55,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 }
               />
             </Route>
+            <Route
+              path="/user/:username"
+              element={
+                <RequireAuth>
+                  <UserProfile />
+                </RequireAuth>
+              }
+            />
           </Routes>
         </ToastProvider>
       </ThemeProvider>
