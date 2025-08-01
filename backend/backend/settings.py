@@ -120,3 +120,8 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 TIME_ZONE = "Indian/Antananarivo"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+import os
+from decouple import config
+
+SUPABASE_URL = config("SUPABASE_URL")
+SUPABASE_KEY = config("SUPABASE_KEY")
