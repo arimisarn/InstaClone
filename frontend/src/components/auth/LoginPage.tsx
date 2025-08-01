@@ -44,7 +44,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "https:/instaclone-oise.onrender.com/api/login/",
+        "https://instaclone-oise.onrender.com/api/login/",
         formData
       );
       const token = response.data.token;
