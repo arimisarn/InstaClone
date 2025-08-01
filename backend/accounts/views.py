@@ -100,15 +100,24 @@ class ConfirmEmailView(APIView):
             )
 
 
-@api_view(["GET"])
+@api_view(["GET", "PUT", "PATCH"])
 @permission_classes([IsAuthenticated])
 def get_my_profile(request):
     try:
         profile, created = Profile.objects.get_or_create(user=request.user)
+
+        if request.method in ["PUT", "PATCH"]:
+            serializer = ProfileSerializer(profile, data=request.data, partial=True, context={"request": request})
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=400)
+
+        # GET → lecture
         serializer = ProfileSerializer(profile, context={"request": request})
         return Response(serializer.data)
+
     except Exception as e:
         import traceback
-
         traceback.print_exc()
         return Response({"error": "Erreur interne serveur."}, status=500)
