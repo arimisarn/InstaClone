@@ -97,9 +97,9 @@ const Profile = () => {
             <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-800">
               <img
                 src={
-                  profile.photo_profil && profile.photo_profil.trim() !== ""
+                  profile.photo_url && profile.photo_url.trim() !== ""
                     ? profile.photo_url
-                    : "/default-avatar.png" // ton image par défaut
+                    : "/default-avatar.png"
                 }
                 alt="Profile"
                 className="w-full h-full object-cover"
