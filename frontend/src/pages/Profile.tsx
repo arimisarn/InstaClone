@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, Grid3X3, Bookmark, UserCheck, Camera, Plus } from "lucide-react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+
 interface ProfileData {
   nom_utilisateur: string;
   email: string;
@@ -13,14 +14,18 @@ interface ProfileData {
   sites_web?: string[];
 }
 
-// const DEFAULT_AVATAR = "/default-avatar.png"; // mettre le chemin vers une image par défaut dans public
-
 const Profile = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [activeTab, setActiveTab] = useState("grid");
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Nouveaux états pour modales et listes
+  const [followersList, setFollowersList] = useState<ProfileData[]>([]);
+  const [followingList, setFollowingList] = useState<ProfileData[]>([]);
+  const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const [showFollowingModal, setShowFollowingModal] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -54,6 +59,46 @@ const Profile = () => {
     console.log("Note partagée:", noteText);
     setNoteText("");
     setShowNoteModal(false);
+  };
+
+  // Fonction pour récupérer les followers
+  const fetchFollowers = async () => {
+    if (!profile) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/users/${profile.nom_utilisateur}/followers/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      setFollowersList(res.data);
+      setShowFollowersModal(true);
+    } catch (err) {
+      console.error("Erreur récupération followers:", err);
+    }
+  };
+
+  // Fonction pour récupérer les utilisateurs suivis
+  const fetchFollowing = async () => {
+    if (!profile) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/users/${profile.nom_utilisateur}/following/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+      setFollowingList(res.data);
+      setShowFollowingModal(true);
+    } catch (err) {
+      console.error("Erreur récupération following:", err);
+    }
   };
 
   if (loading) {
@@ -120,13 +165,21 @@ const Profile = () => {
                 <div className="font-semibold">{profile.nb_publications}</div>
                 <div className="text-gray-400 text-sm">publications</div>
               </div>
-              <div className="text-center">
+              <div
+                className="text-center cursor-pointer"
+                onClick={fetchFollowers}
+                title="Voir les followers"
+              >
                 <div className="font-semibold">{profile.followers}</div>
-                <div className="text-gray-400 text-sm">followers</div>
+                <div className="text-gray-400 text-sm underline">followers</div>
               </div>
-              <div className="text-center">
+              <div
+                className="text-center cursor-pointer"
+                onClick={fetchFollowing}
+                title="Voir les suivi(e)s"
+              >
                 <div className="font-semibold">{profile.following}</div>
-                <div className="text-gray-400 text-sm">suivi(e)s</div>
+                <div className="text-gray-400 text-sm underline">suivi(e)s</div>
               </div>
             </div>
             <div className="mb-4">
@@ -248,6 +301,96 @@ const Profile = () => {
               maxLength={60}
               autoFocus
             />
+          </div>
+        </div>
+      )}
+
+      {/* Modal Followers */}
+      {showFollowersModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-gray-900 rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white text-lg font-semibold">Followers</h2>
+              <button
+                onClick={() => setShowFollowersModal(false)}
+                className="text-gray-400 hover:text-white"
+                aria-label="Fermer modal followers"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {followersList.length === 0 && (
+                <p className="text-gray-400">Aucun follower</p>
+              )}
+              {followersList.map((follower) => (
+                <div
+                  key={follower.nom_utilisateur}
+                  className="flex items-center space-x-4 mb-3"
+                >
+                  <img
+                    src={
+                      follower.photo_url && follower.photo_url.trim() !== ""
+                        ? follower.photo_url
+                        : "/default-avatar.png"
+                    }
+                    alt={follower.nom_utilisateur}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="text-white font-semibold">
+                      {follower.nom_utilisateur}
+                    </div>
+                    <div className="text-gray-400 text-sm">{follower.bio}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Following */}
+      {showFollowingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-gray-900 rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white text-lg font-semibold">Suivi(e)s</h2>
+              <button
+                onClick={() => setShowFollowingModal(false)}
+                className="text-gray-400 hover:text-white"
+                aria-label="Fermer modal following"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              {followingList.length === 0 && (
+                <p className="text-gray-400">Aucun suivi(e)</p>
+              )}
+              {followingList.map((user) => (
+                <div
+                  key={user.nom_utilisateur}
+                  className="flex items-center space-x-4 mb-3"
+                >
+                  <img
+                    src={
+                      user.photo_url && user.photo_url.trim() !== ""
+                        ? user.photo_url
+                        : "/default-avatar.png"
+                    }
+                    alt={user.nom_utilisateur}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <div className="text-white font-semibold">
+                      {user.nom_utilisateur}
+                    </div>
+                    <div className="text-gray-400 text-sm">{user.bio}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
