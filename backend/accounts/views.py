@@ -271,7 +271,7 @@ class SearchUsersView(generics.GenericAPIView):
         return Response(results, status=200)
 
 
-from django.shortcuts import get_object_or_404
+User = get_user_model()
 
 
 @api_view(["GET"])
@@ -286,29 +286,50 @@ def get_user_profile(request, username):
             "photo_url": profile.photo.url if profile and profile.photo else None,
             "bio": profile.bio if profile else "",
             "nb_publications": user.posts.count() if hasattr(user, "posts") else 0,
-            "followers": user.followers.count() if hasattr(user, "followers") else 0,
+            "followers": profile.followers.count() if profile else 0,
             "following": user.following.count() if hasattr(user, "following") else 0,
             "sites_web": profile.sites_web if profile and profile.sites_web else [],
             "is_following": (
-                request.user in user.followers.all()
-                if hasattr(user, "followers")
+                profile.followers.filter(id=request.user.id).exists()
+                if profile
                 else False
             ),
         }
     )
 
 
+from django.shortcuts import get_object_or_404
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def follow_user(request, username):
-    target = get_object_or_404(User, nom_utilisateur=username)
-    request.user.following.add(target)
-    return Response({"detail": "Followed"})
+    if request.user.nom_utilisateur == username:
+        return Response(
+            {"detail": "Vous ne pouvez pas vous suivre vous-même."}, status=400
+        )
+
+    user_to_follow = get_object_or_404(User, nom_utilisateur=username)
+    profile_to_follow = get_object_or_404(Profile, user=user_to_follow)
+
+    profile_to_follow.followers.add(request.user)
+    profile_to_follow.save()
+
+    return Response({"detail": "Utilisateur suivi"})
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def unfollow_user(request, username):
-    target = get_object_or_404(User, nom_utilisateur=username)
-    request.user.following.remove(target)
-    return Response({"detail": "Unfollowed"})
+    if request.user.nom_utilisateur == username:
+        return Response(
+            {"detail": "Vous ne pouvez pas vous désabonner de vous-même."}, status=400
+        )
+
+    user_to_unfollow = get_object_or_404(User, nom_utilisateur=username)
+    profile_to_unfollow = get_object_or_404(Profile, user=user_to_unfollow)
+
+    profile_to_unfollow.followers.remove(request.user)
+    profile_to_unfollow.save()
+
+    return Response({"detail": "Utilisateur non suivi"})
