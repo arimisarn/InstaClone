@@ -62,12 +62,8 @@ class Profile(models.Model):
     def following_count(self):
         return self.user.following.count() if hasattr(self.user, "following") else 0
 
-    def following_count(self):
-        try:
-            return self.user.following.count()
-        except Exception as e:
-            print("Erreur following_count:", e)
-            return 0
+    def followers_count(self):
+        return self.user.followers.count() if hasattr(self.user, "followers") else 0
 
     def __str__(self):
         return f"Profil de {self.user.nom_utilisateur}"
