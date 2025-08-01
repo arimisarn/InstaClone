@@ -46,10 +46,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.nom_utilisateur
 
-
+from django.contrib.postgres.fields import ArrayField
 class Profile(models.Model):
+    GENRE_CHOICES = [
+        ("", "Je préfère ne pas répondre"),
+        ("homme", "Homme"),
+        ("femme", "Femme"),
+        ("autre", "Autre"),
+    ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     photo = models.ImageField(upload_to="profile_pics/", default="default.jpg")
+    genre = models.CharField(max_length=20, choices=GENRE_CHOICES, blank=True, default="")
+    sites_web = ArrayField(models.URLField(), blank=True, default=list)  # plusieurs liens
+    afficher_suggestions = models.BooleanField(default=True)
     bio = models.TextField(blank=True, default="")
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL, related_name="following", blank=True
