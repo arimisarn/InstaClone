@@ -120,12 +120,20 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
         print("📌 FILES REÇUS :", request.FILES)
 
         try:
+            # Bio et genre
             bio = request.data.get("bio", profile.bio)
             genre = request.data.get("genre", profile.genre)
+
+            # ✅ Conversion en booléen
             show_suggestions = request.data.get(
                 "afficher_suggestions", profile.afficher_suggestions
             )
+            if isinstance(show_suggestions, list):
+                show_suggestions = show_suggestions[0]
+            if isinstance(show_suggestions, str):
+                show_suggestions = show_suggestions.lower() in ["true", "1", "yes"]
 
+            # ✅ Gestion des sites web
             sites_web = profile.sites_web
             if "sites_web" in request.data:
                 try:
@@ -137,6 +145,7 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
             elif "sites_web[]" in request.data:
                 sites_web = request.data.getlist("sites_web[]")
 
+            # ✅ Upload photo vers Supabase
             photo_file = request.FILES.get("photo")
             photo_url = profile.photo_url
 
@@ -167,10 +176,11 @@ class ProfileUpdateView(generics.RetrieveUpdateAPIView):
 
                 photo_url = supabase.storage.from_("avatar").get_public_url(file_name)
 
+            # ✅ Mise à jour du profil
             profile.bio = bio
             profile.genre = genre
-            profile.site_web = sites_web
-            profile.afficher_suggestions = show_suggestions
+            profile.sites_web = sites_web  # ✅ nom corrigé
+            profile.afficher_suggestions = show_suggestions  # ✅ booléen
             profile.photo_url = photo_url
             profile.save()
 
