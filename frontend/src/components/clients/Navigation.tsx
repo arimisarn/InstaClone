@@ -1,58 +1,157 @@
-import { Home, Tv, Store, Users, Bell, Search, Menu } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Search,
+  Home,
+  Users,
+  Store,
+  Monitor,
+  MessageCircle,
+  Menu,
+  Bell,
+  ChevronDown,
+} from "lucide-react";
 
-export default function Navigation() {
+const FacebookNavbar: React.FC = () => {
+  const [activeTab, setActiveTab] = useState("home");
+
   return (
-    <header className="w-full bg-white shadow-md fixed top-0 left-0 z-50 border-b">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-14">
-        
-        {/* Logo + Recherche */}
-        <div className="flex items-center gap-3">
-          <img
-            src="/logo-facebook.png" // Mets ici ton logo ou celui de ton app
-            alt="Logo"
-            className="w-10 h-10"
-          />
-          <div className="relative hidden sm:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+      <div className="flex items-center justify-between px-4 h-14">
+        {/* Section gauche - Logo et recherche */}
+        <div className="flex items-center space-x-2 flex-1 max-w-xs">
+          {/* Logo Facebook */}
+          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+            <span className="text-white font-bold text-xl">f</span>
+          </div>
+
+          {/* Barre de recherche */}
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-500" />
+            </div>
             <input
               type="text"
               placeholder="Rechercher sur Facebook"
-              className="bg-gray-100 pl-10 pr-4 py-1.5 rounded-full text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
         </div>
 
-        {/* Icônes centrales */}
-        <nav className="flex gap-8 text-gray-500">
-          <button className="flex flex-col items-center justify-center hover:text-blue-500">
-            <Home size={24} />
-          </button>
-          <button className="flex flex-col items-center justify-center hover:text-blue-500">
-            <Tv size={24} />
-          </button>
-          <button className="flex flex-col items-center justify-center hover:text-blue-500">
-            <Store size={24} />
-          </button>
-          <button className="flex flex-col items-center justify-center hover:text-blue-500">
-            <Users size={24} />
-          </button>
-        </nav>
+        {/* Section centrale - Navigation principale */}
+        <div className="flex items-center justify-center flex-1 max-w-md">
+          <div className="flex space-x-2">
+            {/* Accueil */}
+            <button
+              onClick={() => setActiveTab("home")}
+              className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                activeTab === "home"
+                  ? "text-blue-500 bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Home className="h-6 w-6" />
+              {activeTab === "home" && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+              )}
+            </button>
 
-        {/* Actions utilisateur */}
-        <div className="flex items-center gap-3">
-          <button className="bg-gray-200 p-2 rounded-full hover:bg-gray-300">
-            <Bell size={20} />
+            {/* Amis */}
+            <button
+              onClick={() => setActiveTab("friends")}
+              className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                activeTab === "friends"
+                  ? "text-blue-500 bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Users className="h-6 w-6" />
+              {activeTab === "friends" && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+              )}
+            </button>
+
+            {/* Watch */}
+            <button
+              onClick={() => setActiveTab("watch")}
+              className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                activeTab === "watch"
+                  ? "text-blue-500 bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Monitor className="h-6 w-6" />
+              {activeTab === "watch" && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+              )}
+            </button>
+
+            {/* Marketplace */}
+            <button
+              onClick={() => setActiveTab("marketplace")}
+              className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                activeTab === "marketplace"
+                  ? "text-blue-500 bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <Store className="h-6 w-6" />
+              {activeTab === "marketplace" && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+              )}
+            </button>
+
+            {/* Gaming */}
+            <button
+              onClick={() => setActiveTab("gaming")}
+              className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                activeTab === "gaming"
+                  ? "text-blue-500 bg-blue-50"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              <div className="h-6 w-6 relative">
+                <div className="absolute inset-0 bg-current rounded opacity-20"></div>
+                <div className="absolute top-1 left-1 w-4 h-4 bg-current rounded opacity-60"></div>
+              </div>
+              {activeTab === "gaming" && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Section droite - Icones d'action et profil */}
+        <div className="flex items-center space-x-2 flex-1 justify-end max-w-xs">
+          {/* Menu grid */}
+          <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors duration-200">
+            <Menu className="h-5 w-5 text-gray-700" />
           </button>
-          <button className="bg-gray-200 p-2 rounded-full hover:bg-gray-300">
-            <Menu size={20} />
+
+          {/* Messenger */}
+          <button className="relative p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors duration-200">
+            <MessageCircle className="h-5 w-5 text-gray-700" />
+            {/* Badge de notification */}
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+              2
+            </span>
           </button>
-          <img
-            src="/profile.jpg" // photo de profil utilisateur
-            alt="Profil"
-            className="w-8 h-8 rounded-full object-cover cursor-pointer"
-          />
+
+          {/* Notifications */}
+          <button className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors duration-200">
+            <Bell className="h-5 w-5 text-gray-700" />
+          </button>
+
+          {/* Profil utilisateur */}
+          <button className="flex items-center space-x-1 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-semibold">JD</span>
+            </div>
+            <ChevronDown className="h-4 w-4 text-gray-600" />
+          </button>
         </div>
       </div>
-    </header>
+    </nav>
   );
-}
+};
+
+export default FacebookNavbar;
