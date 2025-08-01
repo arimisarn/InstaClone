@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Search,
   Home,
   Users,
   Store,
@@ -11,7 +10,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import SearchBar from "./SearchBar";
 
 const FacebookNavbar: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -24,6 +23,7 @@ const FacebookNavbar: React.FC = () => {
       setResults([]);
       return;
     }
+    console.log(query, results, handleSearch);
 
     try {
       const token = localStorage.getItem("token");
@@ -52,7 +52,7 @@ const FacebookNavbar: React.FC = () => {
           </div>
 
           {/* Barre de recherche */}
-          <div className="relative flex-1">
+          {/* <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-500" />
             </div>
@@ -64,7 +64,6 @@ const FacebookNavbar: React.FC = () => {
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
 
-            {/* Résultats */}
             {results.length > 0 && (
               <div className="absolute mt-1 w-full bg-white shadow-lg rounded-lg overflow-hidden z-50">
                 {results.map((user) => (
@@ -86,7 +85,8 @@ const FacebookNavbar: React.FC = () => {
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
+          <SearchBar />
         </div>
 
         {/* Section centrale - Navigation principale */}
@@ -134,7 +134,6 @@ const FacebookNavbar: React.FC = () => {
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
               )}
             </button>
-
 
             <button
               onClick={() => setActiveTab("marketplace")}
