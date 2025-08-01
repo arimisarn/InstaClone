@@ -95,6 +95,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_following(self, obj):
         return obj.following_count()
 
+
 # User = get_user_model()
 
 # class LoginSerializer(serializers.Serializer):
