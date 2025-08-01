@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .serializers import RegisterSerializer
+from .serializers import ProfileSerializer, RegisterSerializer
 from rest_framework import generics, permissions
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.permissions import AllowAny
@@ -96,3 +96,10 @@ class ConfirmEmailView(APIView):
             return Response(
                 {"error": "Code incorrect."}, status=status.HTTP_400_BAD_REQUEST
             )
+
+class MyProfileView(generics.RetrieveAPIView):
+    serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user.profile

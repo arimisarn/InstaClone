@@ -1,11 +1,12 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser,Profile
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 from .utils import generate_confirmation_code, send_confirmation_email
 from rest_framework.validators import UniqueValidator
+
 User = get_user_model()
 
 
@@ -18,7 +19,6 @@ class RegisterSerializer(serializers.ModelSerializer):
                 queryset=User.objects.all(), message="Cet email est déjà utilisé."
             )
         ],
-        
     )
     nom_utilisateur = serializers.CharField(
         required=True,
@@ -62,3 +62,30 @@ class RegisterSerializer(serializers.ModelSerializer):
         send_confirmation_email(user.email, code)
 
         return user
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    posts_count = serializers.SerializerMethodField()
+    followers_count = serializers.SerializerMethodField()
+    following_count = serializers.SerializerMethodField()
+    nom_utilisateur = serializers.CharField(source="user.nom_utilisateur")
+
+    class Meta:
+        model = Profile
+        fields = [
+            "nom_utilisateur",
+            "photo",
+            "bio",
+            "posts_count",
+            "followers_count",
+            "following_count",
+        ]
+
+    def get_posts_count(self, obj):
+        return obj.posts_count()
+
+    def get_followers_count(self, obj):
+        return obj.followers_count()
+
+    def get_following_count(self, obj):
+        return obj.following_count()

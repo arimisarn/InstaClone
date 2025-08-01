@@ -1,11 +1,12 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     PermissionsMixin,
     BaseUserManager,
 )
-from django.conf import settings
-from django.db import models
+from django.utils import timezone
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, nom_utilisateur, password=None):
@@ -18,12 +19,14 @@ class CustomUserManager(BaseUserManager):
         user = self.model(email=email, nom_utilisateur=nom_utilisateur)
         user.set_password(password)
         user.save(using=self._db)
+        Profile.objects.create(user=user)  # Crée un profil par défaut
         return user
 
     def create_superuser(self, email, nom_utilisateur, password):
         user = self.create_user(email, nom_utilisateur, password)
         user.is_staff = True
         user.is_superuser = True
+        user.is_active = True
         user.save(using=self._db)
         return user
 
@@ -31,11 +34,9 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     nom_utilisateur = models.CharField(max_length=150, unique=True)
-    is_active = models.BooleanField(default=False)  # ← Désactivé par défaut
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
-    confirmation_code = models.CharField(
-        max_length=6, null=True, blank=True
-    )  # ← Ajout ici
+    confirmation_code = models.CharField(max_length=6, null=True, blank=True)
 
     USERNAME_FIELD = "nom_utilisateur"
     REQUIRED_FIELDS = ["email"]
@@ -43,4 +44,26 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.email
+        return self.nom_utilisateur
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    photo = models.ImageField(upload_to="profile_pics/", default="default.jpg")
+    bio = models.TextField(blank=True, default="")
+    followers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="following", blank=True
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def posts_count(self):
+        return self.user.posts.count() if hasattr(self.user, "posts") else 0
+
+    def followers_count(self):
+        return self.followers.count()
+
+    def following_count(self):
+        return self.user.following.count()
+
+    def __str__(self):
+        return f"Profil de {self.user.nom_utilisateur}"
