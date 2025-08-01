@@ -63,13 +63,13 @@ const Profile = () => {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="flex items-center justify-center min-h-screen text-red-500">
-        Profil introuvable
-      </div>
-    );
-  }
+//   if (!profile) {
+//     return (
+//       <div className="flex items-center justify-center min-h-screen text-red-500">
+//         Profil introuvable
+//       </div>
+//     );
+//   }
 
   return (
     <div className="bg-black text-white min-h-screen">
