@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 interface ProfileData {
   nom_utilisateur: string;
   email: string;
-  photo_profil: string | null;
+  photo_url: string | null;
   bio: string;
   nb_publications: number;
   followers: number;
@@ -98,7 +98,7 @@ const Profile = () => {
               <img
                 src={
                   profile.photo_profil && profile.photo_profil.trim() !== ""
-                    ? profile.photo_profil
+                    ? profile.photo_url
                     : "/default-avatar.png" // ton image par défaut
                 }
                 alt="Profile"
