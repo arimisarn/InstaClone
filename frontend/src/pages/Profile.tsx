@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Grid3X3, Bookmark, UserCheck, Camera, Plus } from "lucide-react";
 import axios from "axios";
-
+import { Link } from "react-router-dom";
 interface ProfileData {
   nom_utilisateur: string;
   email: string;
@@ -77,9 +77,11 @@ const Profile = () => {
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
         <span className="text-lg font-medium">{profile.nom_utilisateur}</span>
         <div className="flex items-center space-x-4">
-          <button className="px-4 py-1 border border-gray-600 rounded-md text-sm font-medium">
-            Modifier le profil
-          </button>
+          <Link to="/modification-profile">
+            <button className="px-4 py-1 border border-gray-600 rounded-md text-sm font-medium">
+              Modifier le profil
+            </button>
+          </Link>
           <button className="px-4 py-1 border border-gray-600 rounded-md text-sm font-medium">
             Voir l'archive
           </button>

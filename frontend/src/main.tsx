@@ -15,6 +15,7 @@ import "./index.css";
 import ConfirmEmailPage from "./pages/ConfirmEmailPage";
 import Accueil from "./pages/Accueil";
 import Profile from "./pages/Profile";
+import ModicationPage from "./pages/ModicationPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -36,11 +37,19 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
-               <Route
+              <Route
                 path="/profile"
                 element={
                   <RequireAuth>
                     <Profile />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/modfication-profile"
+                element={
+                  <RequireAuth>
+                    <ModicationPage />
                   </RequireAuth>
                 }
               />
