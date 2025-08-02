@@ -93,7 +93,7 @@ const Story = () => {
 
         {/* Stories */}
         {stories.map((story) => {
-          const isMyStory = story.user_id === currentUserId;
+          const isMyStory = Number(story.user_id) === Number(currentUserId);
 
           return (
             <div
