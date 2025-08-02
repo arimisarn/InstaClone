@@ -17,6 +17,11 @@ class StoryListView(generics.ListAPIView):
             "-created_at"
         )
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
 
 class StoryCreateView(generics.CreateAPIView):
     serializer_class = StorySerializer
@@ -82,6 +87,13 @@ def toggle_like_story(request, pk):
         story = Story.objects.get(pk=pk)
     except Story.DoesNotExist:
         return Response({"error": "Introuvable"}, status=status.HTTP_404_NOT_FOUND)
+
+    # 🔒 Interdire de liker sa propre story
+    if story.user == request.user:
+        return Response(
+            {"error": "Impossible de liker votre propre story"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
     if request.user in story.likes.all():
         story.likes.remove(request.user)

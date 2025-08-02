@@ -11,6 +11,7 @@ class StorySerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
     views_count = serializers.SerializerMethodField()
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
 
     class Meta:
         model = Story
@@ -19,6 +20,7 @@ class StorySerializer(serializers.ModelSerializer):
             "user_nom_utilisateur",
             "user_photo",
             "text",
+            "user_id",
             "image_url",
             "created_at",
             "expires_at",
@@ -30,20 +32,27 @@ class StorySerializer(serializers.ModelSerializer):
     def get_user_photo(self, obj):
         try:
             return obj.user.profile.photo_url or "/default-avatar.png"
-        except Profile.DoesNotExist:
+        except Exception:
             return "/default-avatar.png"
 
-
     def get_likes_count(self, obj):
-        return obj.likes.count()
+        request = self.context.get("request")
+        if obj.user == request.user:
+            return obj.likes.count()  # ✅ On montre le nombre si c’est toi
+        return None  # 🚫 On cache aux autres
 
     def get_liked_by_me(self, obj):
-        user = self.context["request"].user
-        return obj.likes.filter(id=user.id).exists()
-
+        request = self.context.get("request")
+        # 🚫 Tu ne peux pas liker ta propre story
+        if obj.user == request.user:
+            return False
+        return obj.likes.filter(id=request.user.id).exists()
 
     def get_views_count(self, obj):
-        return obj.views.count()
+        request = self.context.get("request")
+        if obj.user == request.user:
+            return obj.views.count()  # ✅ Montre seulement au propriétaire
+        return None  # 🚫 Cache aux autres
 
 
 # class StorySerializer(serializers.ModelSerializer):

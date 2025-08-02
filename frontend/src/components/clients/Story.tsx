@@ -11,18 +11,15 @@ interface Story {
   image_url: string | null;
   text: string | null;
   liked_by_me: boolean;
-  likes_count: number;
-  views_count: number;
+  likes_count: number | null;
+  views_count: number | null;
 }
 
-const Story = () => {
+const StoryList = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const navigate = useNavigate();
 
   const currentUserId = Number(localStorage.getItem("user_id"));
-  const currentUserName = localStorage.getItem("user_nom_utilisateur") || "";
-  console.log(currentUserName);
-
   const currentUserPhoto =
     localStorage.getItem("user_photo") || "/default-avatar.png";
 
@@ -32,20 +29,16 @@ const Story = () => {
       if (!token) return;
 
       try {
-        const res = await axios.get(
+        const res = await axios.get<Story[]>(
           "https://instaclone-oise.onrender.com/api/story/",
           { headers: { Authorization: `Token ${token}` } }
         );
 
-        const allStories: Story[] = res.data;
-
-        // Séparer ma story des autres
-        const myStory = allStories.find((s) => s.user_id === currentUserId);
-        const otherStories = allStories.filter(
+        const myStory = res.data.find((s) => s.user_id === currentUserId);
+        const otherStories = res.data.filter(
           (s) => s.user_id !== currentUserId
         );
 
-        // Mettre ma story en premier
         if (myStory) {
           setStories([myStory, ...otherStories]);
         } else {
@@ -139,4 +132,4 @@ const Story = () => {
   );
 };
 
-export default Story;
+export default StoryList;

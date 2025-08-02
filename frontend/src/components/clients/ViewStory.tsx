@@ -13,13 +13,14 @@ import {
 
 interface Story {
   id: number;
+  user_id: number;
   user_nom_utilisateur: string;
   user_photo: string;
   image_url: string | null;
   text: string | null;
-  likes_count: number;
+  likes_count: number | null;
   liked_by_me: boolean;
-  views_count: number;
+  views_count: number | null;
 }
 
 interface Viewer {
@@ -34,12 +35,14 @@ const ViewStory = () => {
   const [viewers, setViewers] = useState<Viewer[]>([]);
   const [showViewers, setShowViewers] = useState(false);
 
+  const currentUserId = Number(localStorage.getItem("user_id"));
+
   const fetchStories = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
-      const res = await axios.get(
+      const res = await axios.get<Story[]>(
         "https://instaclone-oise.onrender.com/api/story/",
         { headers: { Authorization: `Token ${token}` } }
       );
@@ -58,20 +61,25 @@ const ViewStory = () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    try {
-      await axios.post(
-        `https://instaclone-oise.onrender.com/api/story/${story.id}/view/`,
-        {},
-        { headers: { Authorization: `Token ${token}` } }
-      );
-    } catch (err) {
-      console.error("Erreur marquage vue", err);
+    // Marquer vue seulement si ce n'est pas ta propre story
+    if (story.user_id !== currentUserId) {
+      try {
+        await axios.post(
+          `https://instaclone-oise.onrender.com/api/story/${story.id}/view/`,
+          {},
+          { headers: { Authorization: `Token ${token}` } }
+        );
+      } catch (err) {
+        console.error("Erreur marquage vue", err);
+      }
     }
   };
 
   const toggleLike = async () => {
+    if (!selectedStory || selectedStory.user_id === currentUserId) return; // Pas de like sur ta propre story
+
     const token = localStorage.getItem("token");
-    if (!token || !selectedStory) return;
+    if (!token) return;
 
     try {
       const res = await axios.post(
@@ -89,11 +97,12 @@ const ViewStory = () => {
   };
 
   const fetchViewers = async () => {
+    if (!selectedStory || selectedStory.user_id !== currentUserId) return; // Seul le propriétaire peut voir
     const token = localStorage.getItem("token");
-    if (!token || !selectedStory) return;
+    if (!token) return;
 
     try {
-      const res = await axios.get(
+      const res = await axios.get<Viewer[]>(
         `https://instaclone-oise.onrender.com/api/story/${selectedStory.id}/viewers/`,
         { headers: { Authorization: `Token ${token}` } }
       );
@@ -122,7 +131,7 @@ const ViewStory = () => {
           </div>
         </div>
 
-        {/* Stories */}
+        {/* Stories list */}
         <div className="px-4 flex-1 overflow-y-auto">
           <h2 className="text-lg font-semibold mb-3">Toutes les stories</h2>
           <div className="space-y-1">
@@ -143,11 +152,17 @@ const ViewStory = () => {
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-sm">
-                    {story.user_nom_utilisateur}
+                    {story.user_id === currentUserId
+                      ? "Vous"
+                      : story.user_nom_utilisateur}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    {story.views_count} vues
-                  </p>
+                  {/* Affiche les vues seulement pour ta propre story */}
+                  {story.user_id === currentUserId &&
+                    story.views_count !== null && (
+                      <p className="text-xs text-gray-400">
+                        {story.views_count} vues
+                      </p>
+                    )}
                 </div>
               </div>
             ))}
@@ -169,7 +184,9 @@ const ViewStory = () => {
                 />
                 <div>
                   <p className="font-semibold text-white">
-                    {selectedStory.user_nom_utilisateur}
+                    {selectedStory.user_id === currentUserId
+                      ? "Vous"
+                      : selectedStory.user_nom_utilisateur}
                   </p>
                   <p className="text-sm text-white/80">Story</p>
                 </div>
@@ -194,23 +211,31 @@ const ViewStory = () => {
 
             {/* Actions */}
             <div className="absolute bottom-8 flex flex-col items-center space-y-4">
-              <button
-                onClick={toggleLike}
-                className="flex items-center space-x-1"
-              >
-                <Heart
-                  className={`w-6 h-6 ${
-                    selectedStory.liked_by_me ? "text-red-500" : "text-white"
-                  }`}
-                />
-                <span>{selectedStory.likes_count}</span>
-              </button>
-              <button
-                onClick={fetchViewers}
-                className="text-sm text-gray-300 underline"
-              >
-                {selectedStory.views_count} vues
-              </button>
+              {/* Bouton like → visible seulement si ce n'est PAS ta story */}
+              {selectedStory.user_id !== currentUserId && (
+                <button
+                  onClick={toggleLike}
+                  className="flex items-center space-x-1"
+                >
+                  <Heart
+                    className={`w-6 h-6 ${
+                      selectedStory.liked_by_me ? "text-red-500" : "text-white"
+                    }`}
+                  />
+                  <span>{selectedStory.likes_count ?? 0}</span>
+                </button>
+              )}
+
+              {/* Bouton vues → visible seulement pour ta story */}
+              {selectedStory.user_id === currentUserId &&
+                selectedStory.views_count !== null && (
+                  <button
+                    onClick={fetchViewers}
+                    className="text-sm text-gray-300 underline"
+                  >
+                    {selectedStory.views_count} vues
+                  </button>
+                )}
             </div>
           </div>
         ) : (
