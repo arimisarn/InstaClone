@@ -1,7 +1,7 @@
 const MainHeader = () => {
   return (
     <div>
-      <h1>Main Header</h1>
+      <h1>Main nn</h1>
     </div>
   );
 };
