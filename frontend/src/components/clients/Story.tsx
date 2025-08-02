@@ -13,10 +13,9 @@ interface Story {
   liked_by_me: boolean;
   likes_count: number | null;
   views_count: number | null;
-  created_at: string;
 }
 
-const Story = () => {
+const StoryList = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const navigate = useNavigate();
 
@@ -35,7 +34,10 @@ const Story = () => {
           { headers: { Authorization: `Token ${token}` } }
         );
 
-        // Séparer mes stories et celles des autres
+        console.log("📌 user_id localStorage =", currentUserId);
+        console.log("📌 Stories reçues :", res.data);
+
+        // Séparer les stories de l'utilisateur et celles des autres
         const myStories = res.data.filter(
           (s) => Number(s.user_id) === currentUserId
         );
@@ -43,20 +45,11 @@ const Story = () => {
           (s) => Number(s.user_id) !== currentUserId
         );
 
-        // Trier mes stories par date décroissante (plus récente en premier)
-        myStories.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        console.log("📌 Mes stories :", myStories);
+        console.log("📌 Autres stories :", otherStories);
 
-        // Mettre ma story la plus récente en premier, puis les autres
-        const finalStories = [
-          ...(myStories.length > 0 ? [myStories[0]] : []),
-          ...otherStories,
-        ];
-
-        setStories(finalStories);
-        console.log("Stories affichées:", finalStories);
+        // Mettre mes stories en premier
+        setStories([...myStories, ...otherStories]);
       } catch (err) {
         console.error("Erreur chargement stories", err);
       }
@@ -93,7 +86,7 @@ const Story = () => {
 
         {/* Stories */}
         {stories.map((story) => {
-          const isMyStory = Number(story.user_id) === Number(currentUserId);
+          const isMyStory = Number(story.user_id) === currentUserId;
 
           return (
             <div
@@ -145,4 +138,4 @@ const Story = () => {
   );
 };
 
-export default Story;
+export default StoryList;
