@@ -7,7 +7,7 @@ interface Story {
   id: number;
   user_id: number;
   user_nom_utilisateur: string;
-  user_photo: string;
+  user_photo: string | null;
   image_url: string | null;
   text: string | null;
   liked_by_me: boolean;
@@ -34,9 +34,12 @@ const StoryList = () => {
           { headers: { Authorization: `Token ${token}` } }
         );
 
-        const myStory = res.data.find((s) => s.user_id === currentUserId);
+        // Compare bien en nombres !
+        const myStory = res.data.find(
+          (s) => Number(s.user_id) === currentUserId
+        );
         const otherStories = res.data.filter(
-          (s) => s.user_id !== currentUserId
+          (s) => Number(s.user_id) !== currentUserId
         );
 
         if (myStory) {
@@ -80,7 +83,11 @@ const StoryList = () => {
 
         {/* Stories */}
         {stories.map((story) => {
-          const isMyStory = story.user_id === currentUserId;
+          const isMyStory = Number(story.user_id) === currentUserId;
+          const userPhoto =
+            story.user_photo && story.user_photo !== "null"
+              ? story.user_photo
+              : "/default-avatar.png";
 
           return (
             <div
@@ -103,9 +110,7 @@ const StoryList = () => {
                       <div
                         className="w-full h-full rounded-full bg-cover bg-center border-2 border-black"
                         style={{
-                          backgroundImage: `url(${
-                            story.user_photo || "/default-avatar.png"
-                          })`,
+                          backgroundImage: `url(${userPhoto})`,
                         }}
                       />
                     </div>
