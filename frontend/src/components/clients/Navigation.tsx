@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import SearchBar from "./SearchBar";
+import { Link } from "react-router-dom";
 
 const FacebookNavbar: React.FC = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -58,20 +59,22 @@ const FacebookNavbar: React.FC = () => {
         <div className="flex items-center justify-center flex-1 max-w-md">
           <div className="flex space-x-2">
             {/* Accueil */}
-            <button
-              onClick={() => setActiveTab("home")}
-              className={`relative p-3 rounded-lg transition-colors duration-200 ${
-                activeTab === "home"
-                  ? "text-blue-500 bg-blue-50"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              <Home className="h-6 w-6" />
-              {activeTab === "home" && (
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
-              )}
-            </button>
-
+            <Link to="/accueil">
+              <button
+                onClick={() => setActiveTab("home")}
+                className={`relative p-3 rounded-lg transition-colors duration-200 ${
+                  activeTab === "home"
+                    ? "text-blue-500 bg-blue-50"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Home className="h-6 w-6" />
+                {activeTab === "home" && (
+                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-blue-500 rounded-t"></div>
+                )}
+              </button>
+            </Link>
+            
             <button
               onClick={() => setActiveTab("friends")}
               className={`relative p-3 rounded-lg transition-colors duration-200 ${
