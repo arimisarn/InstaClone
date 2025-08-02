@@ -15,7 +15,7 @@ interface Story {
   views_count: number;
 }
 
-const StoryList = () => {
+const Story = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const navigate = useNavigate();
 
@@ -139,4 +139,4 @@ const StoryList = () => {
   );
 };
 
-export default StoryList;
+export default Story;
