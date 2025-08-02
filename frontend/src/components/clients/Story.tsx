@@ -22,7 +22,6 @@ const Story = () => {
   const currentUserId = Number(localStorage.getItem("user_id"));
   const currentUserPhoto =
     localStorage.getItem("user_photo") || "/default-avatar.png";
-
   useEffect(() => {
     const fetchStories = async () => {
       const token = localStorage.getItem("token");
@@ -34,7 +33,6 @@ const Story = () => {
           { headers: { Authorization: `Token ${token}` } }
         );
 
-        // Compare bien en nombres !
         const myStory = res.data.find(
           (s) => Number(s.user_id) === currentUserId
         );
@@ -43,10 +41,13 @@ const Story = () => {
         );
 
         if (myStory) {
+          console.log("Story perso trouvée", myStory);
+          console.log("Stories autres", otherStories);
           setStories([myStory, ...otherStories]);
         } else {
           setStories(otherStories);
         }
+        console.log("Stories final:", stories);
       } catch (err) {
         console.error("Erreur chargement stories", err);
       }
@@ -83,6 +84,7 @@ const Story = () => {
 
         {/* Stories */}
         {stories.map((story) => {
+          console.log("Affichage story", story);
           const isMyStory = Number(story.user_id) === currentUserId;
           const userPhoto =
             story.user_photo && story.user_photo !== "null"
