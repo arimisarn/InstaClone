@@ -7,12 +7,13 @@ interface Story {
   id: number;
   user_id: number;
   user_nom_utilisateur: string;
-  user_photo: string | null;
+  user_photo: string;
   image_url: string | null;
   text: string | null;
   liked_by_me: boolean;
   likes_count: number | null;
   views_count: number | null;
+  created_at: string;
 }
 
 const Story = () => {
@@ -22,6 +23,7 @@ const Story = () => {
   const currentUserId = Number(localStorage.getItem("user_id"));
   const currentUserPhoto =
     localStorage.getItem("user_photo") || "/default-avatar.png";
+
   useEffect(() => {
     const fetchStories = async () => {
       const token = localStorage.getItem("token");
@@ -33,21 +35,28 @@ const Story = () => {
           { headers: { Authorization: `Token ${token}` } }
         );
 
-        const myStory = res.data.find(
+        // Séparer mes stories et celles des autres
+        const myStories = res.data.filter(
           (s) => Number(s.user_id) === currentUserId
         );
         const otherStories = res.data.filter(
           (s) => Number(s.user_id) !== currentUserId
         );
 
-        if (myStory) {
-          console.log("Story perso trouvée", myStory);
-          console.log("Stories autres", otherStories);
-          setStories([myStory, ...otherStories]);
-        } else {
-          setStories(otherStories);
-        }
-        console.log("Stories final:", stories);
+        // Trier mes stories par date décroissante (plus récente en premier)
+        myStories.sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+
+        // Mettre ma story la plus récente en premier, puis les autres
+        const finalStories = [
+          ...(myStories.length > 0 ? [myStories[0]] : []),
+          ...otherStories,
+        ];
+
+        setStories(finalStories);
+        console.log("Stories affichées:", finalStories);
       } catch (err) {
         console.error("Erreur chargement stories", err);
       }
@@ -84,12 +93,7 @@ const Story = () => {
 
         {/* Stories */}
         {stories.map((story) => {
-          console.log("Affichage story", story);
-          const isMyStory = Number(story.user_id) === currentUserId;
-          const userPhoto =
-            story.user_photo && story.user_photo !== "null"
-              ? story.user_photo
-              : "/default-avatar.png";
+          const isMyStory = story.user_id === currentUserId;
 
           return (
             <div
@@ -112,7 +116,9 @@ const Story = () => {
                       <div
                         className="w-full h-full rounded-full bg-cover bg-center border-2 border-black"
                         style={{
-                          backgroundImage: `url(${userPhoto})`,
+                          backgroundImage: `url(${
+                            story.user_photo || "/default-avatar.png"
+                          })`,
                         }}
                       />
                     </div>
