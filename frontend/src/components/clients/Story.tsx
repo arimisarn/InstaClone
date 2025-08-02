@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 interface Story {
   id: number;
+  user_id: number;
   user_nom_utilisateur: string;
   user_photo: string;
   image_url: string | null;
@@ -19,7 +20,8 @@ const StoryList = () => {
   const navigate = useNavigate();
 
   const currentUserId = Number(localStorage.getItem("user_id"));
-  console.log(currentUserId);
+  const currentUserName = localStorage.getItem("user_nom_utilisateur") || "";
+  console.log(currentUserName);
 
   const currentUserPhoto =
     localStorage.getItem("user_photo") || "/default-avatar.png";
@@ -28,22 +30,19 @@ const StoryList = () => {
     const fetchStories = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
+
       try {
         const res = await axios.get(
           "https://instaclone-oise.onrender.com/api/story/",
           { headers: { Authorization: `Token ${token}` } }
         );
 
+        const allStories: Story[] = res.data;
+
         // Séparer ma story des autres
-        const myStory = res.data.find(
-          (s: Story) =>
-            s.user_nom_utilisateur ===
-            localStorage.getItem("user_nom_utilisateur")
-        );
-        const otherStories = res.data.filter(
-          (s: Story) =>
-            s.user_nom_utilisateur !==
-            localStorage.getItem("user_nom_utilisateur")
+        const myStory = allStories.find((s) => s.user_id === currentUserId);
+        const otherStories = allStories.filter(
+          (s) => s.user_id !== currentUserId
         );
 
         // Mettre ma story en premier
@@ -56,8 +55,9 @@ const StoryList = () => {
         console.error("Erreur chargement stories", err);
       }
     };
+
     fetchStories();
-  }, []);
+  }, [currentUserId]);
 
   return (
     <div className="bg-black text-white p-4">
@@ -86,12 +86,8 @@ const StoryList = () => {
         </div>
 
         {/* Stories */}
-        {stories.map((story, index) => {
-          console.log(index);
-
-          const isMyStory =
-            story.user_nom_utilisateur ===
-            localStorage.getItem("user_nom_utilisateur");
+        {stories.map((story) => {
+          const isMyStory = story.user_id === currentUserId;
 
           return (
             <div
