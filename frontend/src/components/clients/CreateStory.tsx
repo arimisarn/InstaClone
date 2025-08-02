@@ -62,7 +62,7 @@ const CreateStory = () => {
         formData,
         { headers: { Authorization: `Token ${token}` } }
       );
-      navigate("/");
+      navigate("/accueil");
     } catch (err) {
       console.error("Erreur création story", err);
     }
