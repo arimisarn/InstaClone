@@ -56,9 +56,9 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
 
   // 4. Upload image vers Supabase (exemple simple)
   async function uploadImageToSupabase(file: File): Promise<string> {
-    const a = file
+    const a = file;
     console.log(a);
-    
+
     // Ici, utilise ton client Supabase JS initialisé quelque part
     // Exemple (adapter selon ta config) :
     // const { data, error } = await supabase.storage.from('avatar').upload(fileName, file)
@@ -80,11 +80,15 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
       image_url = await uploadImageToSupabase(imageFile);
     }
 
-    await axios.post(
-      `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/send_message/`,
-      { text: text.trim() || null, image_url },
+    const token = localStorage.getItem("token");
+
+    axios.post(
+      "https://instaclone-oise.onrender.com/api/chat/conversations/1/send_message/",
+      { text: "Salut 👋" },
       {
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Token ${token}`,
+        },
       }
     );
 
@@ -93,7 +97,9 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     setPreview(null);
 
     // Recharge messages
-    const res = await axios.get(`https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`);
+    const res = await axios.get(
+      `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`
+    );
     setMessages(res.data.messages || []);
   };
 
