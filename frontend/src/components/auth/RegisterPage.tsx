@@ -494,7 +494,7 @@ export default function RegisterPage() {
                           </div>
                         ) : (
                           <span className="flex items-center justify-center space-x-2">
-                            <span>S'inscrir</span>
+                            <span>S'inscrire</span>
                             <motion.div
                               animate={{ rotate: [0, 360] }}
                               transition={{
@@ -503,7 +503,7 @@ export default function RegisterPage() {
                                 ease: "linear",
                               }}
                             >
-                              <Sparkles className="w-5 h-5" />
+                              <Check className="w-5 h-5" />
                             </motion.div>
                           </span>
                         )}
