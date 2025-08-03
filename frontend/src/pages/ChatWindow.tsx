@@ -93,7 +93,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     setPreview(null);
 
     // Recharge messages
-    const res = await axios.get(`/api/conversations/${conversationId}/`);
+    const res = await axios.get(`https://instaclone-oise.onrender.com/api/conversations/${conversationId}/`);
     setMessages(res.data.messages || []);
   };
 
