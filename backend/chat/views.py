@@ -40,3 +40,45 @@ class ConversationViewSet(viewsets.ModelViewSet):
         )
         serializer = MessageSerializer(message)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+from django.shortcuts import get_object_or_404
+from .models import Conversation, Message
+from accounts.models import CustomUser
+
+from rest_framework.decorators import api_view, permission_classes
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def send_message_to_user(request):
+    recipient_id = request.data.get("recipient_id")
+    text = request.data.get("text")
+    image_url = request.data.get("image_url")
+
+    if not recipient_id:
+        return Response({"error": "recipient_id est requis"}, status=400)
+
+    recipient = get_object_or_404(CustomUser, id=recipient_id)
+
+    # Vérifie si une conversation existe déjà entre les deux
+    conversation = (
+        Conversation.objects.filter(participants=request.user)
+        .filter(participants=recipient)
+        .first()
+    )
+
+    # Si pas de conversation → création
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, recipient)
+
+    # Création du message
+    message = Message.objects.create(
+        conversation=conversation, sender=request.user, text=text, image_url=image_url
+    )
+
+    return Response(
+        {"success": True, "conversation_id": conversation.id, "message_id": message.id},
+        status=status.HTTP_201_CREATED,
+    )
