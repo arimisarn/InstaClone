@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import axios from "axios";
 
 interface User {
@@ -20,24 +20,34 @@ export default function ConversationsList({ onSelect }: Props) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [recipientId, setRecipientId] = useState("");
 
+  const token = localStorage.getItem("token"); // récupère le token stocké
+
   const fetchConversations = () => {
     axios
-      .get("https://instaclone-oise.onrender.com/api/chat/conversations/")
+      .get("https://instaclone-oise.onrender.com/api/chat/conversations/", {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      })
       .then((res) => setConversations(res.data || []))
       .catch((err) => console.error("Erreur récupération conversations", err));
   };
 
-  useEffect(() => {
-    fetchConversations();
-  }, []);
-
   const startConversation = () => {
     if (!recipientId.trim()) return;
     axios
-      .post("https://instaclone-oise.onrender.com/api/chat/send_message_to_user/", {
-        recipient_id: parseInt(recipientId),
-        text: "Salut 👋", // message de démarrage
-      })
+      .post(
+        "https://instaclone-oise.onrender.com/api/chat/send_message_to_user/",
+        {
+          recipient_id: parseInt(recipientId),
+          text: "Salut 👋",
+        },
+        {
+          headers: {
+            Authorization: `Token ${token}`,
+          },
+        }
+      )
       .then((res) => {
         fetchConversations();
         setRecipientId("");
@@ -45,7 +55,6 @@ export default function ConversationsList({ onSelect }: Props) {
       })
       .catch((err) => console.error(err));
   };
-
   return (
     <div className="p-4 border-r w-64 h-screen overflow-auto bg-white">
       <h2 className="font-bold mb-4">Conversations</h2>
