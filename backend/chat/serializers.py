@@ -1,12 +1,20 @@
+# chat/serializers.py
 from rest_framework import serializers
 from .models import Conversation, Message
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Profile
+from accounts.serializers import (
+    ProfileMiniSerializer,
+)  # importe le serializer ProfileMini
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = ProfileMiniSerializer(
+        source="profile", read_only=True
+    )  # ajoute la relation profile
+
     class Meta:
         model = CustomUser
-        fields = ["id", "nom_utilisateur"]
+        fields = ["id", "nom_utilisateur", "profile"]
 
 
 class MessageSerializer(serializers.ModelSerializer):
