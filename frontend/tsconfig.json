@@ -13,6 +13,9 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
+    "strict": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
