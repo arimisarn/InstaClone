@@ -47,7 +47,7 @@ export default function ConversationsList({ onSelect }: Props) {
     }
     axios
       .get(
-        `https://instaclone-oise.onrender.com/api/accounts/search_user/?q=${encodeURIComponent(
+        `https://instaclone-oise.onrender.com/api/chat/search_user/?q=${encodeURIComponent(
           query
         )}`,
         { headers: { Authorization: `Token ${token}` } }

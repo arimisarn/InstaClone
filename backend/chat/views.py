@@ -99,10 +99,20 @@ def send_message_to_user(request):
         return Response({"error": str(e)}, status=500)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def search_user(request):
-    q = request.query_params.get('q', '')
-    users = CustomUser.objects.filter(nom_utilisateur__icontains=q)[:10]
-    serializer = UserSerializer(users, many=True)
-    return Response(serializer.data)
+    query = request.GET.get("q", "").strip()
+    if not query:
+        return Response({"users": []})
+
+    users = CustomUser.objects.filter(nom_utilisateur__icontains=query)[:10]
+    results = [
+        {
+            "id": user.id,
+            "nom_utilisateur": user.nom_utilisateur,
+            "photo": user.photo.url if user.photo else None,
+        }
+        for user in users
+    ]
+    return Response({"users": results})

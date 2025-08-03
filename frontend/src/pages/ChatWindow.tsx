@@ -51,7 +51,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const fetchConversation = async () => {
     if (!conversationId) return;
     try {
-      const res = await axios.get(`/api/chat/conversations/${conversationId}/`);
+      const res = await axios.get(`https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`);
       setConversation(res.data);
       setMessages(res.data.messages || []);
     } catch (err) {
@@ -103,7 +103,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
 
     try {
       await axios.post(
-        `/api/chat/conversations/${conversationId}/send_message_to_user/`,
+        `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/send_message_to_user/`,
         { text: text.trim() || null, image_url }
       );
       setText("");
