@@ -527,7 +527,7 @@ export default function RegisterPage() {
                           </div>
                         ) : (
                           <span className="flex items-center justify-center space-x-2">
-                            <span>Créer mon Avatar 3D</span>
+                            <span>S'inscrir</span>
                             <motion.div
                               animate={{ rotate: [0, 360] }}
                               transition={{
