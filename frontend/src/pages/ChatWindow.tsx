@@ -15,7 +15,9 @@ axios.interceptors.request.use((config) => {
 interface User {
   id: number;
   nom_utilisateur: string;
-  photo?: string | null;
+  profile?: {
+    photo_url?: string | null;
+  };
 }
 
 interface Message {
@@ -51,7 +53,9 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const fetchConversation = async () => {
     if (!conversationId) return;
     try {
-      const res = await axios.get(`https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`);
+      const res = await axios.get(
+        `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`
+      );
       setConversation(res.data);
       setMessages(res.data.messages || []);
     } catch (err) {
@@ -127,7 +131,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
         <div className="flex items-center p-4 border-b bg-white shadow-sm sticky top-0 z-10">
           <img
             src={
-              interlocuteur.photo ||
+              interlocuteur.profile?.photo_url ||
               "https://via.placeholder.com/40x40.png?text=User"
             }
             alt={interlocuteur.nom_utilisateur}
