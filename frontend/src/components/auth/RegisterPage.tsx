@@ -288,7 +288,7 @@ export default function RegisterPage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.1 }}
                         >
-                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Nom d'utilisateur
                           </label>
                           <input
@@ -306,7 +306,7 @@ export default function RegisterPage() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.2 }}
                         >
-                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                          <label className="block text-sm font-medium  text-gray-700 dark:text-gray-300">
                             Email
                           </label>
                           <input
@@ -314,7 +314,7 @@ export default function RegisterPage() {
                             type="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full px-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            className="w-full px-4 py-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
                             placeholder="avatar@fampita.com"
                             required
                           />
@@ -327,7 +327,7 @@ export default function RegisterPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                       >
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           Mot de passe sécurisé
                         </label>
                         <div className="relative">
@@ -336,7 +336,7 @@ export default function RegisterPage() {
                             type={showPassword ? "text" : "password"}
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full px-4 py-4 pr-12 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            className="w-full px-4 py-4 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
                             placeholder="••••••••••••"
                             required
                           />
@@ -430,7 +430,7 @@ export default function RegisterPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           Confirmer le mot de passe
                         </label>
                         <div className="relative">
@@ -439,7 +439,7 @@ export default function RegisterPage() {
                             type={showConfirmPassword ? "text" : "password"}
                             value={formData.password2}
                             onChange={handleChange}
-                            className="w-full px-4 py-4 pr-12 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            className="w-full px-4 py-4 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
                             placeholder="••••••••••••"
                             required
                           />
@@ -485,18 +485,18 @@ export default function RegisterPage() {
                         className="rounded border-slate-600 bg-slate-800"
                         required
                       />
-                      <label htmlFor="terms" className="text-sm text-slate-400">
+                      <label htmlFor="terms" className="text-sm text-gray-700 dark:text-gray-300text-slate-400">
                         J'accepte les{" "}
                         <Link
                           to="/terms"
-                          className="text-purple-400 hover:text-purple-300 transition-colors"
+                          className="text-purple-600 dark:text-400 hover:text-purple-300 transition-colors"
                         >
                           conditions d'utilisation
                         </Link>{" "}
                         et la{" "}
                         <Link
                           to="/privacy"
-                          className="text-purple-400 hover:text-purple-300 transition-colors"
+                          className="text-purple-600 hover:text-purple-400 dark:text-purple-400 dark:hover:text-purple-300  transition-colors"
                         >
                           politique de confidentialité
                         </Link>
@@ -507,7 +507,7 @@ export default function RegisterPage() {
                     <div className="flex gap-3 pt-4">
                       <motion.button
                         type="button"
-                        className="flex items-center gap-2 px-6 py-3 border border-slate-600/50 text-slate-300 rounded-xl hover:bg-slate-800/50 backdrop-blur-sm bg-transparent transition-all duration-300"
+                        className="flex items-center gap-2 px-6 py-3 bborder-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 backdrop-blur-sm bg-transparent transition-all duration-300"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         Retour
