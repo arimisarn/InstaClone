@@ -2,6 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Send, Image, X } from "lucide-react";
 
+// Config axios globale avec baseURL et token d'authentification
+axios.defaults.baseURL = "https://instaclone-oise.onrender.com";
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token && config.headers) {
+    config.headers["Authorization"] = `Token ${token}`;
+  }
+  return config;
+});
+
 interface User {
   id: number;
   nom_utilisateur: string;
@@ -20,6 +30,7 @@ interface Conversation {
   id: number;
   participants: User[];
   created_at: string;
+  messages?: Message[];
 }
 
 interface Props {
@@ -32,15 +43,15 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [conversation, setConversation] = useState<Conversation | null>(null); // stocker la conversation complète
+  const [conversation, setConversation] = useState<Conversation | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Charger conversation + messages
+  // Charger la conversation complète (messages + participants)
   const fetchConversation = async () => {
     if (!conversationId) return;
     try {
-      const res = await axios.get(`https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`);
+      const res = await axios.get(`/api/chat/conversations/${conversationId}/`);
       setConversation(res.data);
       setMessages(res.data.messages || []);
     } catch (err) {
@@ -56,6 +67,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Aperçu local de l'image sélectionnée
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setImageFile(file);
@@ -68,17 +80,19 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
   };
 
+  // Simuler upload image vers Supabase (à remplacer par ta logique)
   async function uploadImageToSupabase(file: File): Promise<string> {
-    // upload mock
+    console.log(file);
+
     return new Promise((resolve) =>
       setTimeout(
         () => resolve("https://via.placeholder.com/200x200.png?text=Image"),
         1000
       )
     );
-    console.log(file);
   }
 
+  // Envoyer un message (texte + image)
   const sendMessage = async () => {
     if (!text.trim() && !imageFile) return;
 
@@ -89,7 +103,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
 
     try {
       await axios.post(
-        `/api/chat/conversations/${conversationId}/send_message/`,
+        `/api/chat/conversations/${conversationId}/send_message_to_user/`,
         { text: text.trim() || null, image_url }
       );
       setText("");
@@ -101,7 +115,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
   };
 
-  // Trouver l'interlocuteur (participant autre que l'utilisateur courant)
+  // Trouver interlocuteur (participant différent de l'utilisateur courant)
   const interlocuteur = conversation?.participants.find(
     (p) => p.nom_utilisateur !== currentUsername
   );

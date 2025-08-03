@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from .models import Conversation, Message
-from .serializers import ConversationSerializer, MessageSerializer
+from .serializers import ConversationSerializer, MessageSerializer, UserSerializer
 from accounts.models import CustomUser
 
 
@@ -97,3 +97,12 @@ def send_message_to_user(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_user(request):
+    q = request.query_params.get('q', '')
+    users = CustomUser.objects.filter(nom_utilisateur__icontains=q)[:10]
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
