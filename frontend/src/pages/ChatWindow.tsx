@@ -81,7 +81,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
 
     await axios.post(
-      `/api/conversations/${conversationId}/send_message/`,
+      `https://instaclone-oise.onrender.com/api/conversations/${conversationId}/send_message/`,
       { text: text.trim() || null, image_url },
       {
         headers: { "Content-Type": "application/json" },
