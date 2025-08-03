@@ -217,7 +217,7 @@ export default function RegisterPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="bg-slate-900/80 dark:bg-black/80 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
+            <div className="bg-white dark:bg-gray-900 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
               <AnimatePresence mode="wait">
                 {!showForm ? (
                   <motion.div
