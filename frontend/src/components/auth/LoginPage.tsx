@@ -58,7 +58,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 relative overflow-hidden flex flex-col">
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -118,15 +118,7 @@ export default function LoginPage() {
                 </p>
               </div>
             ) : (
-              <div>
-                <div className="text-white text-center">
-                  <h3 className="text-2xl font-bold">
-                    Bienvenue dans Fampita 3D
-                  </h3>
-                  <p className="text-slate-300">
-                    Découvrez une nouvelle expérience immersive.
-                  </p>
-                </div>
+              <div className="w-full h-full relative">
                 <motion.div
                   key="3d-scene"
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -136,6 +128,22 @@ export default function LoginPage() {
                 >
                   <Scene3D />
                 </motion.div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="bg-black/30 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50"
+                  >
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Votre Univers Personnel
+                    </h3>
+                    <p className="text-slate-300 text-sm">
+                      Créez votre avatar et explorez un monde social en 3D où
+                      chaque interaction prend vie.
+                    </p>
+                  </motion.div>
+                </div>
               </div>
             )}
           </motion.div>
@@ -147,7 +155,7 @@ export default function LoginPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="bg-slate-900/80 dark:bg-black/80 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
+            <div className="bg-white dark:bg-gray-900 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
               <AnimatePresence mode="wait">
                 {!showForm ? (
                   <motion.div
@@ -196,8 +204,8 @@ export default function LoginPage() {
                         <Sparkles className="w-8 h-8 text-white" />
                       </motion.div>
                       <div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-                          Connexion Sécurisée
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-300 bg-clip-text text-transparent">
+                          Connexion
                         </h2>
                         <p className="text-slate-400">
                           Accédez à votre univers social 3D
@@ -209,7 +217,7 @@ export default function LoginPage() {
                     <div className="space-y-4">
                       {/* Username */}
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
                           Nom d'utilisateur
                         </label>
                         <input
@@ -217,7 +225,7 @@ export default function LoginPage() {
                           name="username"
                           value={formData.username}
                           onChange={handleChange}
-                          className="w-full px-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
+                          className="w-full px-4 py-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
                           placeholder="Votre nom d'utilisateur"
                           required
                         />
@@ -225,7 +233,7 @@ export default function LoginPage() {
 
                       {/* Password */}
                       <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Mot de passe
                         </label>
                         <div className="relative">
@@ -234,7 +242,7 @@ export default function LoginPage() {
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full px-4 py-4 pr-12 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
+                            className="w-full px-4 py-4 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all duration-300"
                             placeholder="Votre mot de passe"
                             required
                           />

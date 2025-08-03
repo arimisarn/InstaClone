@@ -212,7 +212,7 @@ export default function RegisterPage() {
                           Génération du profil...
                         </h2>
                         <p className="text-slate-400">
-                          Création de votre identité numérique 3D
+                          Chargement
                         </p>
                       </div>
                     </div>
