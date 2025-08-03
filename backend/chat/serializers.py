@@ -3,22 +3,29 @@ from .models import Conversation, Message
 from accounts.models import CustomUser
 
 
-class UserMiniSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["id", "nom_utilisateur", "email"]
+        fields = ["id", "nom_utilisateur"]
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = UserMiniSerializer(read_only=True)
+    sender = UserSerializer(read_only=True)
 
     class Meta:
         model = Message
-        fields = ["id", "sender", "text", "image_url", "reactions", "created_at"]
+        fields = [
+            "id",
+            "sender",
+            "text",
+            "image_url",
+            "reactions",
+            "created_at",
+        ]
 
 
 class ConversationSerializer(serializers.ModelSerializer):
-    participants = UserMiniSerializer(many=True, read_only=True)
+    participants = UserSerializer(many=True)
     messages = MessageSerializer(many=True, read_only=True)
 
     class Meta:
