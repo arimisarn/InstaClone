@@ -69,20 +69,6 @@ export default function ConversationsList({ onSelect }: Props) {
 
       {conversations.length === 0 && <p>Aucune conversation</p>}
       <ul>
-        {conversations.map((conv) => {
-          const names = conv.participants
-            .map((p) => p.nom_utilisateur)
-            .join(", ");
-          return (
-            <li
-              key={conv.id}
-              onClick={() => onSelect(conv.id)}
-              className="cursor-pointer p-2 rounded hover:bg-gray-100"
-            >
-              {names}
-            </li>
-          );
-        })}
         {Array.isArray(conversations) && conversations.length === 0 && (
           <p>Aucune conversation</p>
         )}
