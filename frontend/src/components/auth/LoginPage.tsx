@@ -59,36 +59,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 relative overflow-hidden flex flex-col">
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 flex justify-between items-center"
-      >
-        <Link to="/" className="flex items-center gap-3 group">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 180 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl"
-          >
-            <Sparkles className="w-7 h-7 text-white" />
-          </motion.div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">
-              Fampita
-            </h1>
-            <p className="text-xs text-slate-400">Votre coach IA</p>
-          </div>
-        </Link>
-
-        <Link
-          to="/register"
-          className="border border-blue-500/30 text-blue-300 px-4 py-2 rounded-xl hover:bg-blue-500/10"
-        >
-          S'inscrire
-        </Link>
-      </motion.header>
-
       {/* Main content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-8 items-center">

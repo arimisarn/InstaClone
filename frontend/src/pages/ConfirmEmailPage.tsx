@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Brain, ArrowLeft, CheckCircle } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, CheckCircle } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import { useToast } from "../../src/components/ui/toast"; // <-- ton hook toast local
+import { toast } from "sonner"; // ✅ HeroUI Sonner
+import { Scene3D } from "@/components/clients/3d-scene";
 
 export default function ConfirmEmailPage() {
-  useEffect(() => {
-    document.title = "Tsinjool - Confirmation Email";
-  }, []);
-
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast(); // hook toast
 
   const initialEmail =
     (location.state as { email?: string })?.email ||
@@ -21,15 +18,26 @@ export default function ConfirmEmailPage() {
   const [email, setEmail] = useState(initialEmail);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isLoading3D, setIsLoading3D] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
-  const handleConfirm = async (e: React.FormEvent) => {
+  useEffect(() => {
+    document.title = "Fampita - Confirmation Email";
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading3D(false);
+      setTimeout(() => setShowForm(true), 500);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !code) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez renseigner l'email et le code.",
-      });
+      toast.error("Veuillez renseigner l'email et le code.");
       return;
     }
 
@@ -40,17 +48,16 @@ export default function ConfirmEmailPage() {
         "https://instaclone-oise.onrender.com/api/confirm-email/",
         { email, code }
       );
-      toast({ title: "Succès", description: "Email confirmé avec succès !" });
+
+      toast.success("Email confirmé avec succès !");
 
       const password = sessionStorage.getItem("pendingPassword");
       const username = sessionStorage.getItem("pendingUsername");
 
       if (!username || !password) {
-        toast({
-          title: "Erreur",
-          description:
-            "Identifiants manquants. Veuillez vous connecter manuellement.",
-        });
+        toast.error(
+          "Identifiants manquants. Veuillez vous connecter manuellement."
+        );
         navigate("/login");
         return;
       }
@@ -63,190 +70,214 @@ export default function ConfirmEmailPage() {
       const token = loginRes.data.token;
       localStorage.setItem("token", token);
 
+      // Nettoyage sessionStorage
       sessionStorage.removeItem("pendingPassword");
       sessionStorage.removeItem("pendingUsername");
       sessionStorage.removeItem("pendingEmail");
 
-      toast({
-        title: "Succès",
-        description: "Connecté automatiquement !",
-      });
-
+      toast.success("Connecté automatiquement !");
       navigate("/accueil");
-    } catch (error: unknown) {
-      let msg = "Erreur lors de la confirmation.";
-      if (axios.isAxiosError(error)) {
-        if (error.response?.data) {
-          const data = error.response.data as Record<string, any>;
-          if (data.error) msg = data.error;
-          else if (typeof data === "string") msg = data;
-          else if (Array.isArray(data)) msg = data.join(", ");
-          else msg = JSON.stringify(data);
-        }
-      }
-      toast({ title: "Erreur", description: msg });
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.detail ||
+        "Erreur lors de la confirmation.";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900 flex items-center justify-center p-2 sm:p-4 transition-colors duration-500">
-      <div className="w-full max-w-4xl bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[500px]">
-        {/* Section formulaire */}
-        <div className="w-full lg:w-3/5 flex flex-col relative">
-          {/* Header avec logo */}
-          <div className="flex justify-between items-center p-4 sm:p-6 lg:p-8">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white">
-                  Tsinjool
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                  Votre coach personnel intelligent
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Formulaire */}
-          <form
-            onSubmit={handleConfirm}
-            className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8"
-            noValidate
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 relative overflow-hidden flex flex-col">
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-8 items-center">
+          {/* Section gauche : 3D immersive */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative h-[500px] rounded-3xl overflow-hidden bg-gradient-to-br from-slate-800/50 to-blue-900/50 backdrop-blur-xl border border-slate-700/50 flex items-center justify-center"
           >
-            <div className="w-full max-w-md">
-              <div className="mb-6 sm:mb-8">
-                <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
-                  ÉTAPE 1 SUR 2
-                </p>
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3">
-                  Confirmez votre email
-                  <span className="text-purple-500">.</span>
-                </h1>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                  Entrez le code reçu par email pour activer votre compte.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="votre.email@example.com"
-                    required
-                    disabled={!!initialEmail}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                {/* Code */}
-                <div>
-                  <label
-                    htmlFor="code"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    Code de confirmation
-                  </label>
-                  <input
-                    id="code"
-                    name="code"
-                    type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="Entrez le code"
-                    required
-                    maxLength={6}
-                    style={{ letterSpacing: "0.3em" }}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 text-gray-900 dark:text-white font-mono text-center tracking-widest text-xl"
-                  />
-                </div>
-
-                {/* Boutons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    className="flex items-center justify-center gap-2 py-3 px-4 sm:px-6 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 font-medium group order-2 sm:order-1"
-                  >
-                    <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transform transition-transform duration-300 group-hover:-translate-x-1" />
-                    <span className="text-sm sm:text-base">Retour</span>
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 py-3 px-4 sm:px-6 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 order-1 sm:order-2"
-                  >
-                    {loading ? "Confirmation..." : "Confirmer"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Section décorative */}
-        <div className="w-full lg:w-2/5 relative overflow-hidden min-h-[250px] sm:min-h-[300px] lg:min-h-full">
-          <div className="w-full h-full bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 relative">
-            <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-              style={{
-                backgroundImage: `url(https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop)`,
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 sm:px-8 text-white">
-              <div className="mb-6 sm:mb-8">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto">
-                  <Brain className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </div>
-                <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-                  Presque terminé !
+            {isLoading3D ? (
+              <div className="text-center space-y-4">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{
+                    duration: 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "linear",
+                  }}
+                  className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-400 rounded-full mx-auto"
+                />
+                <h3 className="text-2xl font-bold text-white">
+                  Chargement de l'expérience
                 </h3>
-                <p className="text-base sm:text-lg font-light max-w-sm">
-                  Entrez le code pour activer votre compte Tsinjool.
+                <p className="text-slate-400">
+                  Préparation de votre environnement immersif...
                 </p>
               </div>
-              <div className="flex items-center space-x-2 sm:space-x-4 mb-6 sm:mb-8">
-                <div className="flex items-center">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
-                  </div>
-                  <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-white/90">
-                    Confirmer Email
-                  </span>
-                </div>
-                <div className="w-4 sm:w-8 h-0.5 bg-white/30"></div>
-                <div className="flex items-center">
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/30 rounded-full flex items-center justify-center">
-                    <span className="text-purple-500 font-bold text-xs sm:text-sm">
-                      2
-                    </span>
-                  </div>
-                  <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-white/70">
-                    Profil
-                  </span>
+            ) : (
+              <div className="w-full h-full relative">
+                <motion.div
+                  key="3d-scene"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className="w-full h-full"
+                >
+                  <Scene3D />
+                </motion.div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="bg-black/30 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50"
+                  >
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Étape de confirmation
+                    </h3>
+                    <p className="text-slate-300 text-sm">
+                      Entrez le code reçu par email pour activer votre compte.
+                    </p>
+                  </motion.div>
                 </div>
               </div>
+            )}
+          </motion.div>
+
+          {/* Section formulaire */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="bg-white dark:bg-gray-900 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
+              <AnimatePresence mode="wait">
+                {!showForm ? (
+                  <motion.div
+                    key="form-skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-6"
+                  >
+                    <div className="text-center space-y-4">
+                      <motion.div
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{
+                          duration: 2,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl mx-auto flex items-center justify-center"
+                      >
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">
+                          Initialisation...
+                        </h2>
+                        <p className="text-slate-400">
+                          Préparation de votre interface
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="actual-form"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                  >
+                    {/* Titre */}
+                    <div className="text-center space-y-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl mx-auto flex items-center justify-center shadow-2xl"
+                      >
+                        <CheckCircle className="w-8 h-8 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-300 bg-clip-text text-transparent">
+                          Confirmation Email
+                        </h2>
+                        <p className="text-slate-400">
+                          Entrez le code reçu pour activer votre compte
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Champs */}
+                    <div className="space-y-4">
+                      {/* Email */}
+                      <div>
+                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={!!initialEmail}
+                          className="w-full px-4 py-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          placeholder="Votre email"
+                          required
+                        />
+                      </div>
+
+                      {/* Code */}
+                      <div>
+                        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                          Code de confirmation
+                        </label>
+                        <input
+                          type="text"
+                          value={code}
+                          onChange={(e) => setCode(e.target.value)}
+                          maxLength={6}
+                          className="w-full px-4 py-4 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-center tracking-widest font-mono text-xl"
+                          placeholder="123456"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Boutons */}
+                    <motion.button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full py-4 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white rounded-2xl font-medium transition-all duration-300 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center space-x-2">
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          <span>Confirmation...</span>
+                        </div>
+                      ) : (
+                        "Confirmer"
+                      )}
+                    </motion.button>
+
+                    {/* Lien retour */}
+                    <p className="text-center text-sm text-slate-400">
+                      <Link
+                        to="/login"
+                        className="text-blue-400 hover:text-blue-300 font-medium"
+                      >
+                        Retour à la connexion
+                      </Link>
+                    </p>
+                  </motion.form>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="absolute top-4 sm:top-8 left-4 sm:left-8 w-12 h-12 sm:w-16 sm:h-16 bg-white/10 rounded-full blur-sm animate-pulse"></div>
-            <div className="absolute top-1/4 right-6 sm:right-12 w-16 h-16 sm:w-24 sm:h-24 bg-white/5 rounded-full blur-lg animate-pulse delay-300"></div>
-            <div className="absolute bottom-1/4 left-6 sm:left-12 w-14 h-14 sm:w-20 sm:h-20 bg-white/15 rounded-full blur-md animate-pulse delay-700"></div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
