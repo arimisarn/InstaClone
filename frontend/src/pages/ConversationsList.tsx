@@ -22,7 +22,7 @@ export default function ConversationsList({ onSelect }: Props) {
 
   const fetchConversations = () => {
     axios
-      .get("/api/conversations/")
+      .get("https://instaclone-oise.onrender.com/api/conversations/")
       .then((res) => setConversations(res.data || []))
       .catch((err) => console.error("Erreur récupération conversations", err));
   };
@@ -34,7 +34,7 @@ export default function ConversationsList({ onSelect }: Props) {
   const startConversation = () => {
     if (!recipientId.trim()) return;
     axios
-      .post("/api/chat/send_message_to_user/", {
+      .post("https://instaclone-oise.onrender.com/api/chat/send_message_to_user/", {
         recipient_id: parseInt(recipientId),
         text: "Salut 👋", // message de démarrage
       })
