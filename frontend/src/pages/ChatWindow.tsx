@@ -40,7 +40,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const fetchConversation = async () => {
     if (!conversationId) return;
     try {
-      const res = await axios.get(`/api/chat/conversations/${conversationId}/`);
+      const res = await axios.get(`https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`);
       setConversation(res.data);
       setMessages(res.data.messages || []);
     } catch (err) {
