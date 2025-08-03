@@ -22,7 +22,7 @@ export default function ConversationsList({ onSelect }: Props) {
 
   const fetchConversations = () => {
     axios
-      .get("https://instaclone-oise.onrender.com/api/conversations/")
+      .get("https://instaclone-oise.onrender.com/api/chat/conversations/")
       .then((res) => setConversations(res.data || []))
       .catch((err) => console.error("Erreur récupération conversations", err));
   };
