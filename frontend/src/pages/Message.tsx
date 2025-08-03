@@ -19,10 +19,15 @@ export default function ChatPage() {
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   const fetchMessages = async () => {
-    const res = await axios.get("/api/conversations/1/");
-    setMessages(res.data.messages);
+    try {
+      const res = await axios.get("/api/conversations/1/");
+      console.log("fetchMessages res.data =", res.data);
+      setMessages(res.data.messages || []);
+    } catch (error) {
+      console.error("Erreur fetchMessages", error);
+      setMessages([]);
+    }
   };
 
   useEffect(() => {
@@ -67,7 +72,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((m) => (
+        {(messages || []).map((m) => (
           <div
             key={m.id}
             className={`max-w-xs p-3 rounded-2xl shadow-sm ${
@@ -89,6 +94,7 @@ export default function ChatPage() {
             )}
           </div>
         ))}
+
         <div ref={messagesEndRef} />
       </div>
 
