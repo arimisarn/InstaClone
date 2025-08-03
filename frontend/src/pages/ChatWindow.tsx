@@ -2,6 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Send, Image, X } from "lucide-react";
 
+// --------------------
+// 🔹 CONFIG AXIOS
+// --------------------
+axios.defaults.baseURL = "https://instaclone-oise.onrender.com";
+axios.defaults.headers.common["Authorization"] = `Token ${localStorage.getItem(
+  "token"
+)}`;
+
 interface User {
   nom_utilisateur: string;
 }
@@ -27,21 +35,33 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Charger les messages
-  useEffect(() => {
+  // --------------------
+  // 1️⃣ Charger les messages
+  // --------------------
+  const fetchMessages = async () => {
     if (!conversationId) return;
-    axios
-      .get(`/api/conversations/${conversationId}/`)
-      .then((res) => setMessages(res.data.messages || []))
-      .catch((err) => console.error(err));
+    try {
+      const res = await axios.get(`/api/chat/conversations/${conversationId}/`);
+      setMessages(res.data.messages || []);
+    } catch (err) {
+      console.error("Erreur récupération messages", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
   }, [conversationId]);
 
-  // 2. Scroll vers bas quand messages changent
+  // --------------------
+  // 2️⃣ Scroll vers bas quand messages changent
+  // --------------------
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 3. Aperçu image locale
+  // --------------------
+  // 3️⃣ Aperçu image locale
+  // --------------------
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setImageFile(file);
@@ -54,24 +74,31 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
   };
 
-  // 4. Upload image vers Supabase (exemple simple)
+  // --------------------
+  // 4️⃣ Upload image vers Supabase
+  // --------------------
   async function uploadImageToSupabase(file: File): Promise<string> {
-    const a = file;
-    console.log(a);
+    const fileName = `${Date.now()}_${file.name}`;
+    console.log(fileName);
 
-    // Ici, utilise ton client Supabase JS initialisé quelque part
-    // Exemple (adapter selon ta config) :
-    // const { data, error } = await supabase.storage.from('avatar').upload(fileName, file)
-    // puis récupérer l'URL publique
-    // return url;
+    // ⚠️ Ici tu dois utiliser ton client Supabase JS configuré
+    // Exemple :
+    // const { data, error } = await supabase.storage.from("avatar").upload(fileName, file);
+    // if (error) throw error;
+    // return `${SUPABASE_URL}/storage/v1/object/public/avatar/${fileName}`;
 
-    // Pour l'exemple, on simule un upload avec un delay et url factice :
+    // Pour l'exemple, on simule un upload :
     return new Promise((resolve) =>
-      setTimeout(() => resolve("https://link-to-your-uploaded-image.jpg"), 1000)
+      setTimeout(
+        () => resolve("https://via.placeholder.com/200x200.png?text=Image"),
+        1000
+      )
     );
   }
 
-  // 5. Envoyer message
+  // --------------------
+  // 5️⃣ Envoyer message
+  // --------------------
   const sendMessage = async () => {
     if (!text.trim() && !imageFile) return;
 
@@ -80,30 +107,25 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
       image_url = await uploadImageToSupabase(imageFile);
     }
 
-    await axios.post(
-      `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/send_message/`,
-      { text: text.trim() || null, image_url },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Token ${localStorage.getItem("token")}`, // ✅ Ajout du token
-        },
-      }
-    );
+    try {
+      await axios.post(
+        `/api/chat/conversations/${conversationId}/send_message/`,
+        { text: text.trim() || null, image_url }
+      );
 
-    setText("");
-    setImageFile(null);
-    setPreview(null);
+      setText("");
+      setImageFile(null);
+      setPreview(null);
 
-    // Recharge messages
-    const res = await axios.get(
-      `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/`
-    );
-    setMessages(res.data.messages || []);
+      fetchMessages(); // Recharge les messages
+    } catch (err) {
+      console.error("Erreur envoi message", err);
+    }
   };
 
   return (
     <div className="flex flex-col flex-1 bg-gray-50">
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {(messages || []).map((m) => (
           <div
@@ -130,6 +152,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Aperçu image */}
       {preview && (
         <div className="p-2 border-t bg-white flex items-center justify-between">
           <img src={preview} alt="preview" className="h-20 rounded-lg" />
@@ -145,6 +168,7 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
         </div>
       )}
 
+      {/* Barre d'envoi */}
       <div className="border-t p-3 bg-white flex items-center space-x-2">
         <input
           type="file"
