@@ -19,6 +19,7 @@ import ModicationPage from "./pages/ModicationPage";
 import UserProfile from "./pages/UserProfile";
 import CreateStory from "./components/clients/CreateStory";
 import ViewStory from "./components/clients/ViewStory";
+import Message from "./pages/Message";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -79,6 +80,14 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               element={
                 <RequireAuth>
                   <ViewStory />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <RequireAuth>
+                  <Message />
                 </RequireAuth>
               }
             />
