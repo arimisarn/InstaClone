@@ -22,8 +22,21 @@ export default function ConversationsList({ onSelect }: Props) {
   useEffect(() => {
     axios
       .get("/api/conversations/")
-      .then((res) => setConversations(res.data))
-      .catch((err) => console.error("Erreur récupération conversations", err));
+      .then((res) => {
+        const data = res.data;
+        if (Array.isArray(data)) {
+          setConversations(data);
+        } else if (Array.isArray(data.results)) {
+          setConversations(data.results);
+        } else {
+          setConversations([]);
+          console.warn("Réponse API inattendue :", data);
+        }
+      })
+      .catch((err) => {
+        console.error("Erreur récupération conversations", err);
+        setConversations([]);
+      });
   }, []);
 
   return (
@@ -31,20 +44,26 @@ export default function ConversationsList({ onSelect }: Props) {
       <h2 className="font-bold mb-4">Conversations</h2>
       {conversations.length === 0 && <p>Aucune conversation</p>}
       <ul>
-        {conversations.map((conv) => {
-          const names = conv.participants
-            .map((p) => p.nom_utilisateur)
-            .join(", ");
-          return (
-            <li
-              key={conv.id}
-              onClick={() => onSelect(conv.id)}
-              className="cursor-pointer p-2 rounded hover:bg-gray-100"
-            >
-              {names}
-            </li>
-          );
-        })}
+        {Array.isArray(conversations) && conversations.length === 0 && (
+          <p>Aucune conversation</p>
+        )}
+        <ul>
+          {Array.isArray(conversations) &&
+            conversations.map((conv) => {
+              const names = conv.participants
+                .map((p) => p.nom_utilisateur)
+                .join(", ");
+              return (
+                <li
+                  key={conv.id}
+                  onClick={() => onSelect(conv.id)}
+                  className="cursor-pointer p-2 rounded hover:bg-gray-100"
+                >
+                  {names}
+                </li>
+              );
+            })}
+        </ul>
       </ul>
     </div>
   );
