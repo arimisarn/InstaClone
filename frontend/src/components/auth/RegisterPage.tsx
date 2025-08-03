@@ -270,11 +270,11 @@ export default function RegisterPage() {
                         <Sparkles className="w-8 h-8 text-white" />
                       </motion.div>
                       <div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-300 bg-clip-text text-transparent">
-                          Créer votre Avatar
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
+                          Inscription
                         </h2>
                         <p className="text-slate-400">
-                          Rejoignez l'univers social 3D de demain
+                          Rejoignez Fampita
                         </p>
                       </div>
                     </div>
