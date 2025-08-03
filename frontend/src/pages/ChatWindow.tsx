@@ -2,16 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Send, Image, X } from "lucide-react";
 
-// --------------------
-// 🔹 CONFIG AXIOS
-// --------------------
-axios.defaults.baseURL = "https://instaclone-oise.onrender.com";
-axios.defaults.headers.common["Authorization"] = `Token ${localStorage.getItem(
-  "token"
-)}`;
-
 interface User {
+  id: number;
   nom_utilisateur: string;
+  photo?: string | null;
 }
 
 interface Message {
@@ -22,9 +16,15 @@ interface Message {
   created_at: string;
 }
 
+interface Conversation {
+  id: number;
+  participants: User[];
+  created_at: string;
+}
+
 interface Props {
   conversationId: number;
-  currentUsername: string; // pour afficher messages à droite/gauche
+  currentUsername: string;
 }
 
 export default function ChatWindow({ conversationId, currentUsername }: Props) {
@@ -32,36 +32,30 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
   const [text, setText] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [conversation, setConversation] = useState<Conversation | null>(null); // stocker la conversation complète
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // --------------------
-  // 1️⃣ Charger les messages
-  // --------------------
-  const fetchMessages = async () => {
+  // Charger conversation + messages
+  const fetchConversation = async () => {
     if (!conversationId) return;
     try {
       const res = await axios.get(`/api/chat/conversations/${conversationId}/`);
+      setConversation(res.data);
       setMessages(res.data.messages || []);
     } catch (err) {
-      console.error("Erreur récupération messages", err);
+      console.error("Erreur récupération conversation", err);
     }
   };
 
   useEffect(() => {
-    fetchMessages();
+    fetchConversation();
   }, [conversationId]);
 
-  // --------------------
-  // 2️⃣ Scroll vers bas quand messages changent
-  // --------------------
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // --------------------
-  // 3️⃣ Aperçu image locale
-  // --------------------
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setImageFile(file);
@@ -74,31 +68,17 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
   };
 
-  // --------------------
-  // 4️⃣ Upload image vers Supabase
-  // --------------------
   async function uploadImageToSupabase(file: File): Promise<string> {
-    const fileName = `${Date.now()}_${file.name}`;
-    console.log(fileName);
-
-    // ⚠️ Ici tu dois utiliser ton client Supabase JS configuré
-    // Exemple :
-    // const { data, error } = await supabase.storage.from("avatar").upload(fileName, file);
-    // if (error) throw error;
-    // return `${SUPABASE_URL}/storage/v1/object/public/avatar/${fileName}`;
-
-    // Pour l'exemple, on simule un upload :
+    // upload mock
     return new Promise((resolve) =>
       setTimeout(
         () => resolve("https://via.placeholder.com/200x200.png?text=Image"),
         1000
       )
     );
+    console.log(file);
   }
 
-  // --------------------
-  // 5️⃣ Envoyer message
-  // --------------------
   const sendMessage = async () => {
     if (!text.trim() && !imageFile) return;
 
@@ -112,19 +92,37 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
         `/api/chat/conversations/${conversationId}/send_message/`,
         { text: text.trim() || null, image_url }
       );
-
       setText("");
       setImageFile(null);
       setPreview(null);
-
-      fetchMessages(); // Recharge les messages
+      fetchConversation();
     } catch (err) {
       console.error("Erreur envoi message", err);
     }
   };
 
+  // Trouver l'interlocuteur (participant autre que l'utilisateur courant)
+  const interlocuteur = conversation?.participants.find(
+    (p) => p.nom_utilisateur !== currentUsername
+  );
+
   return (
     <div className="flex flex-col flex-1 bg-gray-50">
+      {/* HEADER avec photo + nom */}
+      {interlocuteur && (
+        <div className="flex items-center p-4 border-b bg-white shadow-sm sticky top-0 z-10">
+          <img
+            src={
+              interlocuteur.photo ||
+              "https://via.placeholder.com/40x40.png?text=User"
+            }
+            alt={interlocuteur.nom_utilisateur}
+            className="w-10 h-10 rounded-full object-cover mr-3"
+          />
+          <span className="font-semibold">{interlocuteur.nom_utilisateur}</span>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {(messages || []).map((m) => (

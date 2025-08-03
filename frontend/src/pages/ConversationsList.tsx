@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 interface User {
   id: number;
   nom_utilisateur: string;
+  photo?: string; // URL photo
 }
 
 interface Conversation {
@@ -18,86 +19,124 @@ interface Props {
 
 export default function ConversationsList({ onSelect }: Props) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [recipientId, setRecipientId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[]>([]);
 
-  const token = localStorage.getItem("token"); // récupère le token stocké
+  const token = localStorage.getItem("token");
 
+  // Charger conversations existantes
   const fetchConversations = () => {
     axios
       .get("https://instaclone-oise.onrender.com/api/chat/conversations/", {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
+        headers: { Authorization: `Token ${token}` },
       })
       .then((res) => setConversations(res.data || []))
       .catch((err) => console.error("Erreur récupération conversations", err));
   };
 
-  const startConversation = () => {
-    if (!recipientId.trim()) return;
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
+  // Rechercher un utilisateur par nom
+  const searchUser = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    axios
+      .get(
+        `https://instaclone-oise.onrender.com/api/accounts/search_user/?q=${encodeURIComponent(
+          query
+        )}`,
+        { headers: { Authorization: `Token ${token}` } }
+      )
+      .then((res) => setSearchResults(res.data || []))
+      .catch((err) => console.error("Erreur recherche utilisateur", err));
+  };
+
+  // Démarrer conversation avec un utilisateur
+  const startConversation = (recipientId: number) => {
     axios
       .post(
         "https://instaclone-oise.onrender.com/api/chat/send_message_to_user/",
-        {
-          recipient_id: parseInt(recipientId),
-          text: "Salut 👋",
-        },
-        {
-          headers: {
-            Authorization: `Token ${token}`,
-          },
-        }
+        { recipient_id: recipientId, text: "Salut 👋" },
+        { headers: { Authorization: `Token ${token}` } }
       )
       .then((res) => {
         fetchConversations();
-        setRecipientId("");
+        setSearchQuery("");
+        setSearchResults([]);
         onSelect(res.data.conversation_id);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Erreur démarrage conversation", err));
   };
+
   return (
     <div className="p-4 border-r w-64 h-screen overflow-auto bg-white">
       <h2 className="font-bold mb-4">Conversations</h2>
 
-      {/* Nouveau message */}
-      <div className="flex mb-4 space-x-2">
-        <input
-          type="number"
-          placeholder="ID utilisateur"
-          value={recipientId}
-          onChange={(e) => setRecipientId(e.target.value)}
-          className="border px-2 py-1 rounded flex-1"
-        />
-        <button
-          onClick={startConversation}
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-        >
-          +
-        </button>
-      </div>
+      {/* Barre de recherche utilisateur */}
+      <input
+        type="text"
+        placeholder="Rechercher un utilisateur..."
+        value={searchQuery}
+        onChange={(e) => searchUser(e.target.value)}
+        className="border px-2 py-1 rounded w-full mb-2"
+      />
 
+      {/* Résultats recherche */}
+      {searchResults.length > 0 && (
+        <ul className="border rounded mb-4 bg-white shadow">
+          {searchResults.map((user) => (
+            <li
+              key={user.id}
+              onClick={() => startConversation(user.id)}
+              className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100"
+            >
+              <img
+                src={
+                  user.photo ||
+                  "https://via.placeholder.com/40x40.png?text=User"
+                }
+                alt={user.nom_utilisateur}
+                className="w-8 h-8 rounded-full object-cover"
+              />
+              <span>{user.nom_utilisateur}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Liste conversations */}
       {conversations.length === 0 && <p>Aucune conversation</p>}
       <ul>
-        {Array.isArray(conversations) && conversations.length === 0 && (
-          <p>Aucune conversation</p>
-        )}
-        <ul>
-          {Array.isArray(conversations) &&
-            conversations.map((conv) => {
-              const names = conv.participants
-                .map((p) => p.nom_utilisateur)
-                .join(", ");
-              return (
-                <li
-                  key={conv.id}
-                  onClick={() => onSelect(conv.id)}
-                  className="cursor-pointer p-2 rounded hover:bg-gray-100"
-                >
-                  {names}
-                </li>
-              );
-            })}
-        </ul>
+        {Array.isArray(conversations) &&
+          conversations.map((conv) => {
+            const otherParticipants = conv.participants; // peut être filtré si tu veux exclure toi-même
+            const names = otherParticipants
+              .map((p) => p.nom_utilisateur)
+              .join(", ");
+            const photo =
+              otherParticipants[0]?.photo ||
+              "https://via.placeholder.com/40x40.png?text=User";
+
+            return (
+              <li
+                key={conv.id}
+                onClick={() => onSelect(conv.id)}
+                className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100"
+              >
+                <img
+                  src={photo}
+                  alt={names}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <span>{names}</span>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );
