@@ -4,7 +4,6 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Sparkles, Check, Loader2, ArrowLeft } from "lucide-react";
-import { ThemeToggle } from "@/components/clients/theme-toggle";
 import { Scene3D } from "@/components/clients/3d-scene";
 import { FormSkeleton } from "@/components/clients/skeleton-loader";
 import { ParticleBackground } from "@/components/clients/particle-background";
@@ -82,7 +81,7 @@ export default function RegisterPage() {
         sessionStorage.setItem("pendingPassword", formData.password);
 
         console.log("Inscription réussie ! Veuillez confirmer votre email.");
-        navigate("/confirm-email");  // <-- ici avec useNavigate()
+        navigate("/confirm-email"); // <-- ici avec useNavigate()
       } else {
         const errorData = await response.json();
         const msg =
@@ -111,39 +110,6 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 relative overflow-hidden flex flex-col">
       <ParticleBackground />
-
-      {/* Header */}
-      <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="p-6 flex justify-between items-center"
-      >
-        <Link to="/" className="flex items-center gap-3 group">
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: -180 }}
-            transition={{ type: "spring", stiffness: 300 }}
-            className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-400 rounded-2xl flex items-center justify-center shadow-2xl"
-          >
-            <Sparkles className="w-7 h-7 text-white" />
-          </motion.div>
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-300 bg-clip-text text-transparent">
-              Fampita
-            </h1>
-            <p className="text-xs text-slate-400">Votre coach IA</p>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link
-            to="/login"
-            className="border border-purple-500/30 text-purple-300 px-4 py-2 rounded-xl hover:bg-purple-500/10"
-          >
-            Se connecter
-          </Link>
-        </div>
-      </motion.header>
 
       {/* Main content */}
       <div className="flex-1 flex items-center justify-center p-4">
@@ -270,12 +236,10 @@ export default function RegisterPage() {
                         <Sparkles className="w-8 h-8 text-white" />
                       </motion.div>
                       <div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-300 bg-clip-text text-transparent">
                           Inscription
                         </h2>
-                        <p className="text-slate-400">
-                          Rejoignez Fampita
-                        </p>
+                        <p className="text-slate-400">Rejoignez Fampita</p>
                       </div>
                     </div>
 
@@ -485,7 +449,10 @@ export default function RegisterPage() {
                         className="rounded border-slate-600 bg-slate-800"
                         required
                       />
-                      <label htmlFor="terms" className="text-sm text-gray-700 dark:text-gray-300text-slate-400">
+                      <label
+                        htmlFor="terms"
+                        className="text-sm text-gray-700 dark:text-gray-300text-slate-400"
+                      >
                         J'accepte les{" "}
                         <Link
                           to="/terms"
