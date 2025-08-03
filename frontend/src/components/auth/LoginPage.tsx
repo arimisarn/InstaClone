@@ -4,6 +4,7 @@ import { Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner"; // ✅ HeroUI Sonner
+import { Scene3D } from "../clients/3d-scene";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -117,13 +118,24 @@ export default function LoginPage() {
                 </p>
               </div>
             ) : (
-              <div className="text-white text-center">
-                <h3 className="text-2xl font-bold">
-                  Bienvenue dans Fampita 3D
-                </h3>
-                <p className="text-slate-300">
-                  Découvrez une nouvelle expérience immersive.
-                </p>
+              <div>
+                <div className="text-white text-center">
+                  <h3 className="text-2xl font-bold">
+                    Bienvenue dans Fampita 3D
+                  </h3>
+                  <p className="text-slate-300">
+                    Découvrez une nouvelle expérience immersive.
+                  </p>
+                </div>
+                <motion.div
+                  key="3d-scene"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className="w-full h-full"
+                >
+                  <Scene3D />
+                </motion.div>
               </div>
             )}
           </motion.div>
