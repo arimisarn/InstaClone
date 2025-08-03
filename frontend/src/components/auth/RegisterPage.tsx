@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useToast } from "../../components/ui/toast";
+"use client";
 
-interface Slide {
-  image: string;
-  title: string;
-  subtitle: string;
-  gradient: string;
-}
+import type React from "react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Eye, EyeOff, Sparkles, Check, Loader2, ArrowLeft } from "lucide-react";
+import { ThemeToggle } from "@/components/clients/theme-toggle";
+import { Scene3D } from "@/components/clients/3d-scene";
+import { FormSkeleton } from "@/components/clients/skeleton-loader";
+import { ParticleBackground } from "@/components/clients/particle-background";
+import { Link, useNavigate } from "react-router-dom";
 
 interface FormData {
   email: string;
@@ -18,33 +17,15 @@ interface FormData {
   password2: string;
 }
 
-const slides: Slide[] = [
-  {
-    image:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop",
-    title: "Coaching personnalisé",
-    subtitle: "Un accompagnement adapté à vos besoins et objectifs.",
-    gradient: "from-blue-400 via-teal-400 to-green-500",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1594737625785-a6cbdabd333c?w=800&h=600&fit=crop",
-    title: "Suivi intelligent",
-    subtitle: "L'IA suit vos progrès et vous motive chaque jour.",
-    gradient: "from-purple-400 via-pink-400 to-red-500",
-  },
-  {
-    image:
-      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&h=600&fit=crop",
-    title: "Atteignez vos objectifs",
-    subtitle: "Avec un coach digital qui ne vous laisse jamais tomber.",
-    gradient: "from-orange-400 via-yellow-400 to-green-500",
-  },
+const passwordRequirements = [
+  { text: "Au moins 8 caractères", regex: /.{8,}/ },
+  { text: "Une lettre majuscule", regex: /[A-Z]/ },
+  { text: "Une lettre minuscule", regex: /[a-z]/ },
+  { text: "Un chiffre", regex: /\d/ },
 ];
 
 export default function RegisterPage() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const navigate = useNavigate(); // <-- ici on utilise useNavigate
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -53,255 +34,535 @@ export default function RegisterPage() {
     password2: "",
   });
   const [loading, setLoading] = useState(false);
-  const [current, setCurrent] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading3D, setIsLoading3D] = useState(true);
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     document.title = "Fampita - Inscription";
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 4000);
-    return () => clearInterval(interval);
+    const timer = setTimeout(() => {
+      setIsLoading3D(false);
+      setTimeout(() => setShowForm(true), 500);
+    }, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (formData.password !== formData.password2) {
-      toast({
-        title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
-      });
+      // Par exemple ici tu peux utiliser un toast au lieu de console.error
+      console.error("Les mots de passe ne correspondent pas");
       return;
     }
 
     setLoading(true);
     try {
-      await axios.post(
+      const response = await fetch(
         "https://instaclone-oise.onrender.com/api/register/",
-        formData
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
       );
-      sessionStorage.setItem("pendingUsername", formData.nom_utilisateur);
-      sessionStorage.setItem("pendingEmail", formData.email);
-      sessionStorage.setItem("pendingPassword", formData.password);
-      toast({
-        title: "Succès",
-        description: "Inscription réussie ! Veuillez confirmer votre email.",
-      });
-      navigate("/confirm-email", { state: { email: formData.email } });
+
+      if (response.ok) {
+        sessionStorage.setItem("pendingUsername", formData.nom_utilisateur);
+        sessionStorage.setItem("pendingEmail", formData.email);
+        sessionStorage.setItem("pendingPassword", formData.password);
+
+        console.log("Inscription réussie ! Veuillez confirmer votre email.");
+        navigate("/confirm-email");  // <-- ici avec useNavigate()
+      } else {
+        const errorData = await response.json();
+        const msg =
+          errorData?.email?.[0] ||
+          errorData?.nom_utilisateur?.[0] ||
+          errorData?.non_field_errors?.[0] ||
+          "Erreur lors de l'inscription.";
+        console.error(msg);
+      }
     } catch (error: any) {
-      const msg =
-        error?.response?.data?.email?.[0] ||
-        error?.response?.data?.nom_utilisateur?.[0] ||
-        error?.response?.data?.non_field_errors?.[0] ||
-        "Erreur lors de l'inscription.";
-      toast({
-        title: "Erreur",
-        description: msg,
-      });
+      console.error("Erreur lors de l'inscription:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  const getPasswordStrength = (password: string) => {
+    const validRequirements = passwordRequirements.filter((req) =>
+      req.regex.test(password)
+    );
+    return validRequirements.length;
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-100 dark:from-slate-900 dark:to-blue-900 flex items-center justify-center p-4 transition-colors duration-500">
-      <div className="w-full max-w-6xl bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px]">
-        <div className="w-full lg:w-1/2 flex flex-col relative">
-          <div className="flex justify-between items-center p-6 lg:p-8">
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Tsinjool
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Votre coach personnel intelligent
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate("/login")}
-              className="text-blue-600 dark:text-purple-400 hover:underline font-medium"
-            >
-              Se connecter
-            </button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 relative overflow-hidden flex flex-col">
+      <ParticleBackground />
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSubmit();
-            }}
-            className="flex-1 flex items-center justify-center p-6 lg:p-8"
+      {/* Header */}
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-6 flex justify-between items-center"
+      >
+        <Link to="/" className="flex items-center gap-3 group">
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: -180 }}
+            transition={{ type: "spring", stiffness: 300 }}
+            className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-400 rounded-2xl flex items-center justify-center shadow-2xl"
           >
-            <div className="w-full max-w-md space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Créer un compte
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Commencez gratuitement dès maintenant.
+            <Sparkles className="w-7 h-7 text-white" />
+          </motion.div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-300 bg-clip-text text-transparent">
+              Fampita
+            </h1>
+            <p className="text-xs text-slate-400">Votre coach IA</p>
+          </div>
+        </Link>
+
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link
+            to="/login"
+            className="border border-purple-500/30 text-purple-300 px-4 py-2 rounded-xl hover:bg-purple-500/10"
+          >
+            Se connecter
+          </Link>
+        </div>
+      </motion.header>
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-8 items-center">
+          {/* Section gauche : chargement/placeholder 3D */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            className="relative h-[600px] rounded-3xl overflow-hidden bg-gradient-to-br from-purple-800/50 to-blue-900/50 backdrop-blur-xl border border-slate-700/50 flex items-center justify-center"
+          >
+            {isLoading3D ? (
+              <div className="text-center space-y-4">
+                <motion.div
+                  animate={{
+                    rotate: 360,
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    rotate: {
+                      duration: 2,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "linear",
+                    },
+                    scale: { duration: 1.5, repeat: Number.POSITIVE_INFINITY },
+                  }}
+                  className="w-16 h-16 border-4 border-purple-500/30 border-t-purple-400 rounded-full mx-auto"
+                />
+                <h3 className="text-2xl font-bold text-white">
+                  Génération de l'univers 3D
+                </h3>
+                <p className="text-slate-400">
+                  Construction de votre environnement personnalisé...
                 </p>
               </div>
-
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className="text-sm text-gray-700 dark:text-gray-300">
-                    Nom d'utilisateur
-                  </label>
-                  <input
-                    name="nom_utilisateur"
-                    value={formData.nom_utilisateur}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="JeanDupont"
-                    required
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="text-sm text-gray-700 dark:text-gray-300">
-                    Email
-                  </label>
-                  <input
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="email@example.com"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-700 dark:text-gray-300">
-                  Mot de passe
-                </label>
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+            ) : (
+              <div className="w-full h-full relative">
+                <motion.div
+                  key="3d-scene"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8 }}
+                  className="w-full h-full"
+                >
+                  <Scene3D />
+                </motion.div>
+                <div className="absolute bottom-6 left-6 right-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="bg-black/30 backdrop-blur-md rounded-2xl p-6 border border-slate-700/50"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-700 dark:text-gray-300">
-                  Confirmer le mot de passe
-                </label>
-                <div className="relative">
-                  <input
-                    name="password2"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={formData.password2}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff size={20} />
-                    ) : (
-                      <Eye size={20} />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate(-1)}
-                  className="flex items-center gap-2 px-6 py-3 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  Retour
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? "Chargement..." : "S'inscrire"}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Section carrousel */}
-        <div className="w-full lg:w-1/2 relative overflow-hidden min-h-[300px] lg:min-h-full">
-          <div className="relative w-full h-full">
-            {slides.map((slide, index) => (
-              <div
-                key={index}
-                className={`absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out ${
-                  index === current
-                    ? "opacity-100 translate-x-0"
-                    : index < current
-                    ? "opacity-0 -translate-x-full"
-                    : "opacity-0 translate-x-full"
-                }`}
-              >
-                <div
-                  className={`w-full h-full bg-gradient-to-br ${slide.gradient} relative`}
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${slide.image})` }}
-                  />
-                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center text-white px-8 text-center">
-                    <h3 className="text-3xl lg:text-4xl font-bold mb-4">
-                      {slide.title}
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Votre Univers Personnel
                     </h3>
-                    <p className="text-lg lg:text-xl font-light max-w-md">
-                      {slide.subtitle}
+                    <p className="text-slate-300 text-sm">
+                      Créez votre avatar et explorez un monde social en 3D où
+                      chaque interaction prend vie.
                     </p>
-                  </div>
+                  </motion.div>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+          </motion.div>
 
-          {/* Indicateurs */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-10">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrent(index)}
-                aria-label={`Slide ${index + 1}`}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === current
-                    ? "bg-white scale-125"
-                    : "bg-white/50 hover:bg-white/75"
-                }`}
-              />
-            ))}
-          </div>
+          {/* Section formulaire */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="bg-slate-900/80 dark:bg-black/80 backdrop-blur-2xl rounded-3xl p-8 border border-slate-700/50 shadow-2xl">
+              <AnimatePresence mode="wait">
+                {!showForm ? (
+                  <motion.div
+                    key="form-skeleton"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-6"
+                  >
+                    <div className="text-center space-y-4">
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 180, 360],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Number.POSITIVE_INFINITY,
+                        }}
+                        className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-400 rounded-2xl mx-auto flex items-center justify-center"
+                      >
+                        <Loader2 className="w-8 h-8 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-white">
+                          Génération du profil...
+                        </h2>
+                        <p className="text-slate-400">
+                          Création de votre identité numérique 3D
+                        </p>
+                      </div>
+                    </div>
+                    <FormSkeleton />
+                  </motion.div>
+                ) : (
+                  <motion.form
+                    key="actual-form"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                  >
+                    {/* Titre */}
+                    <div className="text-center space-y-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: -5 }}
+                        className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-400 rounded-2xl mx-auto flex items-center justify-center shadow-2xl"
+                      >
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </motion.div>
+                      <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-300 bg-clip-text text-transparent">
+                          Créer votre Avatar
+                        </h2>
+                        <p className="text-slate-400">
+                          Rejoignez l'univers social 3D de demain
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Champs */}
+                    <div className="space-y-4">
+                      {/* Username et Email */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.1 }}
+                        >
+                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                            Nom d'utilisateur
+                          </label>
+                          <input
+                            name="nom_utilisateur"
+                            value={formData.nom_utilisateur}
+                            onChange={handleChange}
+                            className="w-full px-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            placeholder="Avatar_Name"
+                            required
+                          />
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <label className="block text-sm font-medium text-slate-300 mb-2">
+                            Email
+                          </label>
+                          <input
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full px-4 py-4 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            placeholder="avatar@fampita.com"
+                            required
+                          />
+                        </motion.div>
+                      </div>
+
+                      {/* Password */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Mot de passe sécurisé
+                        </label>
+                        <div className="relative">
+                          <input
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            value={formData.password}
+                            onChange={handleChange}
+                            className="w-full px-4 py-4 pr-12 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            placeholder="••••••••••••"
+                            required
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-400 transition-colors"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={20} />
+                            ) : (
+                              <Eye size={20} />
+                            )}
+                          </motion.button>
+                        </div>
+
+                        {/* Password strength */}
+                        {formData.password && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="mt-3 space-y-3"
+                          >
+                            <div className="flex space-x-1">
+                              {[1, 2, 3, 4].map((level) => (
+                                <motion.div
+                                  key={level}
+                                  className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                                    passwordStrength >= level
+                                      ? passwordStrength <= 2
+                                        ? "bg-gradient-to-r from-red-500 to-red-600"
+                                        : passwordStrength === 3
+                                        ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+                                        : "bg-gradient-to-r from-green-500 to-blue-500"
+                                      : "bg-slate-700"
+                                  }`}
+                                  initial={{ scaleX: 0 }}
+                                  animate={{
+                                    scaleX: passwordStrength >= level ? 1 : 0,
+                                  }}
+                                  transition={{ delay: level * 0.1 }}
+                                />
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              {passwordRequirements.map((req, index) => (
+                                <motion.div
+                                  key={index}
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  className="flex items-center space-x-2 text-xs"
+                                >
+                                  <motion.div
+                                    animate={{
+                                      scale: req.regex.test(formData.password)
+                                        ? [1, 1.2, 1]
+                                        : 1,
+                                    }}
+                                    transition={{ duration: 0.3 }}
+                                  >
+                                    <Check
+                                      className={`w-3 h-3 ${
+                                        req.regex.test(formData.password)
+                                          ? "text-green-400"
+                                          : "text-slate-500"
+                                      }`}
+                                    />
+                                  </motion.div>
+                                  <span
+                                    className={
+                                      req.regex.test(formData.password)
+                                        ? "text-green-400"
+                                        : "text-slate-500"
+                                    }
+                                  >
+                                    {req.text}
+                                  </span>
+                                </motion.div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
+
+                      {/* Confirm Password */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                          Confirmer le mot de passe
+                        </label>
+                        <div className="relative">
+                          <input
+                            name="password2"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={formData.password2}
+                            onChange={handleChange}
+                            className="w-full px-4 py-4 pr-12 bg-slate-800/50 border border-slate-600/50 rounded-2xl text-white placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all duration-300 backdrop-blur-sm"
+                            placeholder="••••••••••••"
+                            required
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            type="button"
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-purple-400 transition-colors"
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff size={20} />
+                            ) : (
+                              <Eye size={20} />
+                            )}
+                          </motion.button>
+                        </div>
+                        {formData.password2 &&
+                          formData.password !== formData.password2 && (
+                            <motion.p
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className="mt-2 text-xs text-red-400"
+                            >
+                              Les mots de passe ne correspondent pas
+                            </motion.p>
+                          )}
+                      </motion.div>
+                    </div>
+
+                    {/* Terms */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="flex items-center space-x-2"
+                    >
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        className="rounded border-slate-600 bg-slate-800"
+                        required
+                      />
+                      <label htmlFor="terms" className="text-sm text-slate-400">
+                        J'accepte les{" "}
+                        <Link
+                          to="/terms"
+                          className="text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          conditions d'utilisation
+                        </Link>{" "}
+                        et la{" "}
+                        <Link
+                          to="/privacy"
+                          className="text-purple-400 hover:text-purple-300 transition-colors"
+                        >
+                          politique de confidentialité
+                        </Link>
+                      </label>
+                    </motion.div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3 pt-4">
+                      <motion.button
+                        type="button"
+                        className="flex items-center gap-2 px-6 py-3 border border-slate-600/50 text-slate-300 rounded-xl hover:bg-slate-800/50 backdrop-blur-sm bg-transparent transition-all duration-300"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        Retour
+                      </motion.button>
+
+                      <motion.button
+                        type="submit"
+                        disabled={
+                          loading || formData.password !== formData.password2
+                        }
+                        className="flex-1 py-3 px-6 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 text-white rounded-xl font-medium transition-all duration-300 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? (
+                          <div className="flex items-center justify-center space-x-2">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>Création de l'avatar...</span>
+                          </div>
+                        ) : (
+                          <span className="flex items-center justify-center space-x-2">
+                            <span>Créer mon Avatar 3D</span>
+                            <motion.div
+                              animate={{ rotate: [0, 360] }}
+                              transition={{
+                                duration: 2,
+                                repeat: Number.POSITIVE_INFINITY,
+                                ease: "linear",
+                              }}
+                            >
+                              <Sparkles className="w-5 h-5" />
+                            </motion.div>
+                          </span>
+                        )}
+                      </motion.button>
+                    </div>
+
+                    {/* Login link */}
+                    <motion.p
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.7 }}
+                      className="text-center text-sm text-slate-400"
+                    >
+                      Déjà membre de Fampita ?{" "}
+                      <Link
+                        to="/login"
+                        className="text-purple-400 hover:text-purple-300 transition-colors font-medium"
+                      >
+                        Se connecter
+                      </Link>
+                    </motion.p>
+                  </motion.form>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>
