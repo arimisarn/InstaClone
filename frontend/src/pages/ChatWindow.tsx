@@ -80,14 +80,13 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
       image_url = await uploadImageToSupabase(imageFile);
     }
 
-    const token = localStorage.getItem("token");
-
-    axios.post(
-      "https://instaclone-oise.onrender.com/api/chat/conversations/1/send_message/",
-      { text: "Salut 👋" },
+    await axios.post(
+      `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/send_message/`,
+      { text: text.trim() || null, image_url },
       {
         headers: {
-          Authorization: `Token ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Token ${localStorage.getItem("token")}`, // ✅ Ajout du token
         },
       }
     );
