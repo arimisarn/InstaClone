@@ -107,12 +107,5 @@ def search_user(request):
         return Response({"users": []})
 
     users = CustomUser.objects.filter(nom_utilisateur__icontains=query)[:10]
-    results = [
-        {
-            "id": user.id,
-            "nom_utilisateur": user.nom_utilisateur,
-            "photo": user.photo.url if user.photo else None,
-        }
-        for user in users
-    ]
-    return Response({"users": results})
+    serialized_users = UserSerializer(users, many=True)
+    return Response({"users": serialized_users.data})
