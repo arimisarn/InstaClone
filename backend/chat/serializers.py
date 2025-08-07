@@ -8,9 +8,7 @@ from accounts.serializers import (
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileMiniSerializer(
-        source="profile", read_only=True
-    )  # ajoute la relation profile
+    profile = ProfileMiniSerializer(source="profile", read_only=True)
 
     class Meta:
         model = CustomUser
