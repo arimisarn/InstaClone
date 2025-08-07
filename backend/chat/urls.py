@@ -6,7 +6,11 @@ router = DefaultRouter()
 router.register(r"conversations", ConversationViewSet, basename="conversation")
 
 urlpatterns = [
-    path("send_message_to_user/", send_message_to_user, name="send_message_to_user"),
+    path(
+        "conversations/<int:pk>/send_message_to_user/",
+        send_message_to_user,
+        name="send_message_to_user",
+    ),
     path("search_user/", search_user, name="search_user"),
 ]
 
