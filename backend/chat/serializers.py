@@ -8,11 +8,20 @@ from accounts.serializers import (
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileMiniSerializer(source="profile", read_only=True)
+    profile = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
         fields = ["id", "nom_utilisateur", "profile"]
+
+    def get_profile(self, obj):
+        try:
+            from accounts.serializers import ProfileMiniSerializer
+
+            profile = obj.profile
+            return ProfileMiniSerializer(profile).data
+        except Profile.DoesNotExist:
+            return None
 
 
 class MessageSerializer(serializers.ModelSerializer):
