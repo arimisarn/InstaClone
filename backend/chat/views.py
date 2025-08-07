@@ -10,13 +10,25 @@ from accounts.models import CustomUser
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
-    def get_queryset(self):
-        return Conversation.objects.filter(participants=self.request.user).order_by(
-            "-created_at"
+    @action(detail=True, methods=["post"], url_path="send_message_to_user")
+    def send_message_to_user(self, request, pk=None):
+        conversation = self.get_object()
+        sender = request.user
+        message_text = request.data.get("message")
+
+        if not message_text:
+            return Response(
+                {"error": "Message is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        message = Message.objects.create(
+            conversation=conversation, sender=sender, message=message_text
         )
+        serializer = MessageSerializer(message)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def send_message(self, request, pk=None):
