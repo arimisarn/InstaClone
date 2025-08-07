@@ -106,6 +106,26 @@ def search_user(request):
     if not query:
         return Response({"users": []})
 
-    users = CustomUser.objects.filter(nom_utilisateur__icontains=query)[:10]
-    serialized_users = UserSerializer(users, many=True)
-    return Response({"users": serialized_users.data})
+    try:
+        users = CustomUser.objects.filter(nom_utilisateur__icontains=query)[:10]
+        results = []
+        for user in users:
+            # Récupérer la photo depuis le profil lié (peut être None)
+            photo_url = None
+            if hasattr(user, "profile") and user.profile:
+                photo_url = user.profile.photo_url
+
+            results.append(
+                {
+                    "id": user.id,
+                    "nom_utilisateur": user.nom_utilisateur,
+                    "photo": photo_url,
+                }
+            )
+        return Response({"users": results})
+
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=500)
