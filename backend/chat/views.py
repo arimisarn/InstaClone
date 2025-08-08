@@ -1,3 +1,4 @@
+import traceback
 from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -80,45 +81,74 @@ User = get_user_model()
 @permission_classes([IsAuthenticated])
 def send_message_to_user(request, conversation_id):
     try:
-        conversation = Conversation.objects.get(id=conversation_id)
-    except Conversation.DoesNotExist:
-        return Response(
-            {"error": "Conversation not trouvée."}, status=status.HTTP_404_NOT_FOUND
+        print(f"🔹 Début envoi message pour la conversation {conversation_id}")
+        print(f"🔹 Utilisateur : {request.user.nom_utilisateur} (ID {request.user.id})")
+
+        try:
+            conversation = Conversation.objects.get(id=conversation_id)
+            print(f"✅ Conversation trouvée : {conversation}")
+        except Conversation.DoesNotExist:
+            print("❌ Conversation introuvable")
+            return Response(
+                {"error": "Conversation non trouvée."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        user = request.user
+        if user not in conversation.participants.all():
+            print("❌ Utilisateur non autorisé dans la conversation")
+            return Response(
+                {"error": "Vous ne participez pas à cette conversation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        message_text = request.data.get("message")
+        print(f"🔹 Contenu du message reçu : {message_text}")
+
+        if not message_text:
+            print("❌ Message vide")
+            return Response(
+                {"error": "Message vide."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        message = Message.objects.create(
+            conversation=conversation, sender=user, text=message_text
         )
+        print(f"✅ Message créé : ID {message.id}")
 
-    user = request.user
-    if user not in conversation.participants.all():
+        # Récupération de la photo de profil
+        try:
+            profile = Profile.objects.get(user=user)
+            user_photo = profile.photo_url if profile.photo_url else None
+            print(f"🔹 Photo de profil : {user_photo}")
+        except Profile.DoesNotExist:
+            user_photo = None
+            print("⚠️ Aucun profil trouvé pour cet utilisateur")
+
+        response_data = {
+            "id": message.id,
+            "conversation": conversation.id,
+            "sender_id": user.id,
+            "sender_nom_utilisateur": user.nom_utilisateur,
+            "sender_photo": user_photo,
+            "message": message.text,
+            "timestamp": message.created_at,
+        }
+
+        print("✅ Réponse préparée avec succès")
+        return Response(response_data, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        print("❌ Erreur inattendue dans send_message_to_user")
+        traceback.print_exc()
         return Response(
-            {"error": "Vous ne participez pas à cette conversation."},
-            status=status.HTTP_403_FORBIDDEN,
+            {
+                "error": "Erreur interne du serveur",
+                "details": str(e),
+                "trace": traceback.format_exc(),
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
-    message_text = request.data.get("message")
-    if not message_text:
-        return Response({"error": "Message vide."}, status=status.HTTP_400_BAD_REQUEST)
-
-    message = Message.objects.create(
-        conversation=conversation, sender=user, message=message_text
-    )
-
-    # Récupérer le profil de l'expéditeur
-    try:
-        profile = Profile.objects.get(user=user)
-        user_photo = profile.photo.url if profile.photo else None
-    except Profile.DoesNotExist:
-        user_photo = None
-
-    response_data = {
-        "id": message.id,
-        "conversation": conversation.id,
-        "sender_id": user.id,
-        "sender_nom_utilisateur": user.nom_utilisateur,
-        "sender_photo": user_photo,
-        "message": message.message,
-        "timestamp": message.timestamp,
-    }
-
-    return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
