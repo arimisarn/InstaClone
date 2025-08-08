@@ -27,7 +27,6 @@ def send_confirmation_email(email, code):
 
     msg = EmailMultiAlternatives(subject, text_content, from_email, to)
     msg.attach_alternative(html_content, "text/html")
-    msg.send()
     try:
         msg.send()
     except Exception as e:
