@@ -143,28 +143,46 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {(messages || []).map((m) => (
-          <div
-            key={m.id}
-            className={`max-w-xs p-3 rounded-2xl shadow-sm ${
-              m.sender.nom_utilisateur === currentUsername
-                ? "bg-blue-500 text-white ml-auto"
-                : "bg-white border"
-            }`}
-          >
-            <p className="text-xs font-semibold mb-1">
-              {m.sender.nom_utilisateur}
-            </p>
-            {m.text && <p className="whitespace-pre-line">{m.text}</p>}
-            {m.image_url && (
-              <img
-                src={m.image_url}
-                alt="message"
-                className="mt-2 rounded-lg max-w-[200px]"
-              />
-            )}
-          </div>
-        ))}
+        {messages.map((m) => {
+          const isMine = m.sender.nom_utilisateur === currentUsername;
+          return (
+            <div
+              key={m.id}
+              className={`flex items-end space-x-2 ${
+                isMine ? "justify-end" : "justify-start"
+              }`}
+            >
+              {!isMine && (
+                <img
+                  src={
+                    m.sender?.profile?.photo_url ||
+                    "https://via.placeholder.com/40x40.png?text=User"
+                  }
+                  alt={m.sender.nom_utilisateur}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              )}
+
+              <div
+                className={`max-w-xs p-3 rounded-2xl shadow-sm ${
+                  isMine
+                    ? "bg-blue-500 text-white rounded-br-none"
+                    : "bg-gray-100 text-gray-900 rounded-bl-none"
+                }`}
+              >
+                {m.text && <p className="whitespace-pre-line">{m.text}</p>}
+                {m.image_url && (
+                  <img
+                    src={m.image_url}
+                    alt="message"
+                    className="mt-2 rounded-lg max-w-[200px]"
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+
         <div ref={messagesEndRef} />
       </div>
 
