@@ -50,6 +50,29 @@ class RegisterView(generics.CreateAPIView):
         )
 
 
+@api_view(["POST"])
+def register(request):
+    try:
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {"message": "Utilisateur inscrit"}, status=status.HTTP_201_CREATED
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print("❌ Erreur d'inscription :", e)
+        print(traceback.format_exc())
+        return Response(
+            {
+                "error": "Erreur serveur",
+                "details": str(e),
+                "trace": traceback.format_exc(),
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get("nom_utilisateur")

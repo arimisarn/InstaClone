@@ -5,9 +5,11 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
+
 def generate_confirmation_code(length=6):
     """Génère un code aléatoire de confirmation (ex: 6 chiffres)."""
-    return ''.join(random.choices(string.digits, k=length))
+    return "".join(random.choices(string.digits, k=length))
+
 
 def send_confirmation_email(email, code):
     subject = "Confirme ton adresse email - Fampita"
@@ -15,9 +17,9 @@ def send_confirmation_email(email, code):
     to = [email]
 
     context = {
-        'confirmation_code': code,
-        'user_email': email,
-        'site_name': 'Fampita',
+        "confirmation_code": code,
+        "user_email": email,
+        "site_name": "Fampita",
     }
     html_content = render_to_string("emails/confirmation_email.html", context)
 
@@ -26,3 +28,7 @@ def send_confirmation_email(email, code):
     msg = EmailMultiAlternatives(subject, text_content, from_email, to)
     msg.attach_alternative(html_content, "text/html")
     msg.send()
+    try:
+        msg.send()
+    except Exception as e:
+        print(f"Erreur lors de l'envoi de l'email: {e}")
