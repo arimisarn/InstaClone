@@ -67,48 +67,36 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def send_message_to_user(request):
+def send_message_to_user(request, conversation_id):
     try:
-        recipient_id = request.data.get("recipient_id")
-        text = request.data.get("text", "").strip()
-        image_url = request.data.get("image_url", None)
-
-        if not recipient_id:
-            return Response({"error": "recipient_id est requis"}, status=400)
-
-        recipient = get_object_or_404(CustomUser, id=recipient_id)
-
-        # Cherche une conversation existante
-        conversation = (
-            Conversation.objects.filter(participants=request.user)
-            .filter(participants=recipient)
-            .first()
-        )
-
-        # Si pas de conversation → création
-        if not conversation:
-            conversation = Conversation.objects.create()
-            conversation.participants.add(request.user, recipient)
-
-        # Création du message
-        message = Message.objects.create(
-            conversation=conversation,
-            sender=request.user,
-            text=text if text else None,
-            image_url=image_url,
-        )
-
+        conversation = Conversation.objects.get(id=conversation_id)
+    except Conversation.DoesNotExist:
         return Response(
-            {
-                "success": True,
-                "conversation_id": conversation.id,
-                "message": MessageSerializer(message).data,
-            },
-            status=status.HTTP_201_CREATED,
+            {"error": "Conversation non trouvée."}, status=status.HTTP_404_NOT_FOUND
         )
 
-    except Exception as e:
-        return Response({"error": str(e)}, status=500)
+    content = request.data.get("content", "").strip()
+
+    if not content:
+        return Response(
+            {"error": "Le contenu du message est requis."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Vérifie si l'utilisateur est un participant à la conversation
+    if request.user != conversation.user1 and request.user != conversation.user2:
+        return Response(
+            {"error": "Vous n'avez pas accès à cette conversation."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Crée et sauvegarde le message
+    message = Message.objects.create(
+        conversation=conversation, sender=request.user, content=content
+    )
+
+    serializer = MessageSerializer(message)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
