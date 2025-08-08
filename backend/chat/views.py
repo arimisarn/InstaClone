@@ -65,6 +65,17 @@ class ConversationViewSet(viewsets.ModelViewSet):
             )
 
 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Conversation, Message
+from accounts.models import Profile
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def send_message_to_user(request, conversation_id):
@@ -72,31 +83,42 @@ def send_message_to_user(request, conversation_id):
         conversation = Conversation.objects.get(id=conversation_id)
     except Conversation.DoesNotExist:
         return Response(
-            {"error": "Conversation non trouvée."}, status=status.HTTP_404_NOT_FOUND
+            {"error": "Conversation not trouvée."}, status=status.HTTP_404_NOT_FOUND
         )
 
-    content = request.data.get("content", "").strip()
-
-    if not content:
+    user = request.user
+    if user not in conversation.participants.all():
         return Response(
-            {"error": "Le contenu du message est requis."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # Vérifie si l'utilisateur est un participant à la conversation
-    if request.user != conversation.user1 and request.user != conversation.user2:
-        return Response(
-            {"error": "Vous n'avez pas accès à cette conversation."},
+            {"error": "Vous ne participez pas à cette conversation."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Crée et sauvegarde le message
+    message_text = request.data.get("message")
+    if not message_text:
+        return Response({"error": "Message vide."}, status=status.HTTP_400_BAD_REQUEST)
+
     message = Message.objects.create(
-        conversation=conversation, sender=request.user, content=content
+        conversation=conversation, sender=user, message=message_text
     )
 
-    serializer = MessageSerializer(message)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # Récupérer le profil de l'expéditeur
+    try:
+        profile = Profile.objects.get(user=user)
+        user_photo = profile.photo.url if profile.photo else None
+    except Profile.DoesNotExist:
+        user_photo = None
+
+    response_data = {
+        "id": message.id,
+        "conversation": conversation.id,
+        "sender_id": user.id,
+        "sender_nom_utilisateur": user.nom_utilisateur,
+        "sender_photo": user_photo,
+        "message": message.message,
+        "timestamp": message.timestamp,
+    }
+
+    return Response(response_data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
