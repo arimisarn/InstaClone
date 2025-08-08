@@ -106,14 +106,29 @@ export default function ChatWindow({ conversationId, currentUsername }: Props) {
     }
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `https://instaclone-oise.onrender.com/api/chat/conversations/${conversationId}/send_message_to_user/`,
         { text: text.trim() || null, image_url }
       );
+
+      const newMessage: Message = {
+        id: res.data.id,
+        text: res.data.text,
+        image_url: res.data.image_url || null,
+        created_at: res.data.timestamp,
+        sender: {
+          id: res.data.sender_id,
+          nom_utilisateur: res.data.sender_nom_utilisateur,
+          profile: {
+            photo_url: res.data.sender_photo || null,
+          },
+        },
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
       setText("");
       setImageFile(null);
       setPreview(null);
-      fetchConversation();
     } catch (err) {
       console.error("Erreur envoi message", err);
     }
