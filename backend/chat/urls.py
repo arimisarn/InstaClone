@@ -7,7 +7,7 @@ router.register(r"conversations", ConversationViewSet, basename="conversation")
 
 urlpatterns = [
     path(
-        "conversations/<int:pk>/send_message_to_user/",
+        "conversations/<int:conversation_id>/send_message_to_user/",
         send_message_to_user,
         name="send_message_to_user",
     ),

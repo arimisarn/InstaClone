@@ -4,50 +4,37 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer, UserSerializer
-from accounts.models import CustomUser
+from accounts.models import CustomUser, Profile
+
+User = get_user_model()
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer
 
-    @action(detail=True, methods=["post"], url_path="send_message_to_user")
-    def send_message_to_user(self, request, pk=None):
-        conversation = self.get_object()
-        sender = request.user
-        message_text = request.data.get("message")
-
-        if not message_text:
-            return Response(
-                {"error": "Message is required."}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        message = Message.objects.create(
-            conversation=conversation, sender=sender, message=message_text
-        )
-        serializer = MessageSerializer(message)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     @action(detail=True, methods=["post"])
     def send_message(self, request, pk=None):
         try:
             conversation = self.get_object()
 
-            # Vérifier que l'utilisateur est bien dans la conversation
             if request.user not in conversation.participants.all():
                 return Response(
-                    {"detail": "Non autorisé"}, status=status.HTTP_403_FORBIDDEN
+                    {"detail": "Non autorisé"},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
 
             text = request.data.get("text", "").strip()
-            image_url = request.data.get("image_url", None)
+            image_url = request.data.get("image_url")
 
             if not text and not image_url:
                 return Response(
-                    {"error": "Message vide"}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Message vide"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             message = Message.objects.create(
@@ -61,89 +48,65 @@ class ConversationViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            traceback.print_exc()
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Conversation, Message
-from accounts.models import Profile
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def send_message_to_user(request, conversation_id):
     try:
-        print(f"🔹 Début envoi message pour la conversation {conversation_id}")
-        print(f"🔹 Utilisateur : {request.user.nom_utilisateur} (ID {request.user.id})")
-
-        try:
-            conversation = Conversation.objects.get(id=conversation_id)
-            print(f"✅ Conversation trouvée : {conversation}")
-        except Conversation.DoesNotExist:
-            print("❌ Conversation introuvable")
-            return Response(
-                {"error": "Conversation non trouvée."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        print(f"📨 Envoi message à la conversation {conversation_id}")
+        conversation = Conversation.objects.get(id=conversation_id)
 
         user = request.user
         if user not in conversation.participants.all():
-            print("❌ Utilisateur non autorisé dans la conversation")
             return Response(
                 {"error": "Vous ne participez pas à cette conversation."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        message_text = request.data.get("message")
-        print(f"🔹 Contenu du message reçu : {message_text}")
-
-        if not message_text:
-            print("❌ Message vide")
+        text = request.data.get("text", "").strip()
+        if not text:
             return Response(
-                {"error": "Message vide."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Message vide."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         message = Message.objects.create(
-            conversation=conversation, sender=user, text=message_text
+            conversation=conversation, sender=user, text=text
         )
-        print(f"✅ Message créé : ID {message.id}")
 
-        # Récupération de la photo de profil
         try:
             profile = Profile.objects.get(user=user)
-            user_photo = profile.photo_url if profile.photo_url else None
-            print(f"🔹 Photo de profil : {user_photo}")
+            photo_url = profile.photo_url if profile.photo_url else None
         except Profile.DoesNotExist:
-            user_photo = None
-            print("⚠️ Aucun profil trouvé pour cet utilisateur")
+            photo_url = None
 
         response_data = {
             "id": message.id,
             "conversation": conversation.id,
             "sender_id": user.id,
             "sender_nom_utilisateur": user.nom_utilisateur,
-            "sender_photo": user_photo,
-            "message": message.text,
+            "sender_photo": photo_url,
+            "text": message.text,
             "timestamp": message.created_at,
         }
 
-        print("✅ Réponse préparée avec succès")
         return Response(response_data, status=status.HTTP_201_CREATED)
 
+    except Conversation.DoesNotExist:
+        return Response(
+            {"error": "Conversation non trouvée."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
     except Exception as e:
-        print("❌ Erreur inattendue dans send_message_to_user")
         traceback.print_exc()
         return Response(
             {
-                "error": "Erreur interne du serveur",
+                "error": "Erreur serveur",
                 "details": str(e),
                 "trace": traceback.format_exc(),
             },
@@ -162,10 +125,11 @@ def search_user(request):
         users = CustomUser.objects.filter(nom_utilisateur__icontains=query)[:10]
         results = []
         for user in users:
-            # Récupérer la photo depuis le profil lié (peut être None)
-            photo_url = None
-            if hasattr(user, "profile") and user.profile:
-                photo_url = user.profile.photo_url
+            photo_url = (
+                getattr(user.profile, "photo_url", None)
+                if hasattr(user, "profile")
+                else None
+            )
 
             results.append(
                 {
@@ -174,10 +138,9 @@ def search_user(request):
                     "photo": photo_url,
                 }
             )
+
         return Response({"users": results})
 
     except Exception as e:
-        import traceback
-
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
